@@ -33,7 +33,7 @@ import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 
 /**
  * Bean that should be used instead of the {@link PropertyPlaceholderConfigurer} if you want to have
- * access to the resolved properties not obly from the Spring context. e.g. from JSP or so. 
+ * access to the resolved properties not only from the Spring context. e.g. from JSP or so. 
  *
  * @author Mykola Palienko
  */
