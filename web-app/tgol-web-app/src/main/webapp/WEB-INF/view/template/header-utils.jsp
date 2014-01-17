@@ -22,11 +22,31 @@
                 </c:set>
             </c:otherwise>
         </c:choose>
-        <c:set var="currentUserName" scope="page">
-            <c:catch var="notAuthenException" >
-                <sec:authentication property="principal.displayedUserName" />
-            </c:catch>
-        </c:set>
+        
+        <!-- Setting user name: use display attribute if available/not empty/not null in LDAP entry, 
+        otherwise use first value of cn (common name) if available/not empty/not null in LDAP entry, 
+        otherwise use username -->
+	<c:set var="currentUserName" scope="page">
+		<c:catch var="notAuthenException" >
+			<sec:authentication property="principal.displayName" />
+		</c:catch>
+	</c:set>
+	<c:if test="${empty currentUserName || currentUserName == null || currentUserName=='null'}">
+		<c:set var="currentUserName" scope="page">
+    			<c:catch var="notAuthenException" >
+				<sec:authentication property="principal.cn[0]" />
+			</c:catch>
+		</c:set>
+	</c:if>
+	<c:if test="${empty currentUserName || currentUserName == null || currentUserName=='null'}">
+		<c:set var="currentUserName" scope="page">
+    			<c:catch var="notAuthenException" >
+				<sec:authentication property="principal.username" />
+			</c:catch>
+		</c:set>
+	</c:if>
+	
+	
         <c:if test="${accountSettingsActive == 'true'}">
             <c:set var="accountSettingsActive" scope="page" value=""/>
         </c:if>

@@ -22,19 +22,23 @@
 package org.opens.tgol.entity.dao.contract;
 
 import java.util.Collection;
+import java.util.Iterator;
+
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+
 import org.opens.tanaguru.sdk.entity.dao.jpa.AbstractJPADAO;
 import org.opens.tgol.entity.contract.Contract;
 import org.opens.tgol.entity.contract.ContractImpl;
 import org.opens.tgol.entity.user.User;
 
 /**
- *
+ * 
  * @author jkowalczyk
  */
-public class ContractDAOImpl extends AbstractJPADAO<Contract, Long>
-        implements ContractDAO {
+public class ContractDAOImpl extends AbstractJPADAO<Contract, Long> implements
+        ContractDAO {
 
     public ContractDAOImpl() {
         super();
@@ -45,16 +49,26 @@ public class ContractDAOImpl extends AbstractJPADAO<Contract, Long>
         return ContractImpl.class;
     }
 
+    public Collection<Long> findAllIndex() {
+        TypedQuery<Long> query = entityManager.createQuery(
+                "SELECT o.id_" + getEntityClassName() + " FROM "
+                        + getEntityClassName() + " o", getKeyClass());
+        return query.getResultList();
+    }
+
+    protected Class<Long> getKeyClass() {
+        return Long.class;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public Collection<Contract> findAllContractsByUser(User user) {
         Query query = entityManager.createQuery("SELECT distinct(c) FROM "
-                + getEntityClass().getName() + " c"
+                + getEntityClassName() + " c"
                 + " LEFT JOIN FETCH c.optionElementSet o"
                 + " LEFT JOIN FETCH c.functionalitySet f"
                 + " LEFT JOIN FETCH c.referentialSet f"
-                + " LEFT JOIN FETCH c.scenarioSet f"
-                + " WHERE c.user = :user");
+                + " LEFT JOIN FETCH c.scenarioSet f" + " WHERE c.user = :user");
         query.setParameter("user", user);
         return query.getResultList();
     }
@@ -63,15 +77,14 @@ public class ContractDAOImpl extends AbstractJPADAO<Contract, Long>
     public Contract read(Long id) {
         try {
             Query query = entityManager.createQuery("SELECT c FROM "
-                    + getEntityClass().getName() + " c"
+                    + getEntityClassName() + " c"
                     + " LEFT JOIN FETCH c.optionElementSet o"
                     + " LEFT JOIN FETCH c.functionalitySet f"
                     + " LEFT JOIN FETCH c.referentialSet f"
-                    + " LEFT JOIN FETCH c.scenarioSet f"
-                    + " WHERE c.id = :id");
+                    + " LEFT JOIN FETCH c.scenarioSet f" + " WHERE c.id = :id");
             query.setParameter("id", id);
             Contract contract = (Contract) query.getSingleResult();
-            // to ensure the options associated with the contract is 
+            // to ensure the options associated with the contract is
             // retrieved
             contract.getOptionElementSet().size();
             contract.getFunctionalitySet().size();
@@ -81,6 +94,24 @@ public class ContractDAOImpl extends AbstractJPADAO<Contract, Long>
         } catch (NoResultException nre) {
             return null;
         }
+    }
+
+    @Override
+    public Collection<Contract> findByIndexes(Collection<Long> indexes) {
+        // Optimization: setting capacity at the correct value right away
+        StringBuilder queryBuilder = new StringBuilder("SELECT o FROM ").append(getEntityClassName())
+                .append(" o WHERE o.id IN (");
+        Iterator<Long> it = indexes.iterator();
+        while (it.hasNext()) {
+            Long index = it.next();
+            queryBuilder.append(index.longValue());
+            if (it.hasNext()) {
+                queryBuilder.append(',');
+            }
+        }
+        queryBuilder.append(")");
+        Query query = entityManager.createQuery(queryBuilder.toString());
+        return query.getResultList();
     }
 
 }

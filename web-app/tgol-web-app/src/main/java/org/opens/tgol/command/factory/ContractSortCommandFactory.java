@@ -23,15 +23,15 @@ package org.opens.tgol.command.factory;
 
 import java.util.List;
 import java.util.Map;
+
 import org.opens.tgol.command.ContractSortCommand;
 import org.opens.tgol.form.FormField;
 import org.opens.tgol.form.SelectElement;
 import org.opens.tgol.form.SelectFormField;
 import org.opens.tgol.form.TextualFormField;
 
-
 /**
- *
+ * 
  * @author jkowalczyk
  */
 public final class ContractSortCommandFactory {
@@ -41,7 +41,8 @@ public final class ContractSortCommandFactory {
     /**
      * Factory has default constructor
      */
-    private ContractSortCommandFactory(){}
+    private ContractSortCommandFactory() {
+    }
 
     public static synchronized ContractSortCommandFactory getInstance() {
         if (contractDisplayCommandFactory == null) {
@@ -49,37 +50,37 @@ public final class ContractSortCommandFactory {
         }
         return contractDisplayCommandFactory;
     }
-    
+
     /**
-     * Return a initialised auditCommand object for the given contract. This object
-     * handles the last values selected by the user
+     * Return a initialised auditCommand object for the given contract. This
+     * object handles the last values selected by the user
      * 
      * @param contract
      * @param auditSetUpFormFieldList
      * @param auditSite
      * @return
      */
-    public ContractSortCommand getInitialisedContractDisplayCommand (
-            Long userId,
+    public ContractSortCommand getInitialisedContractDisplayCommand(
             List<FormField> formFieldList) {
         ContractSortCommand contractDisplayCommand = new ContractSortCommand();
         for (FormField ff : formFieldList) {
             if (ff instanceof SelectFormField) {
-                for (Map.Entry<String, List<SelectElement>> entry : ((SelectFormField)ff).getSelectElementMap().entrySet()) {
+                for (Map.Entry<String, List<SelectElement>> entry : ((SelectFormField) ff)
+                        .getSelectElementMap().entrySet()) {
                     for (SelectElement se : entry.getValue()) {
                         if (se.getDefault() && se.getEnabled()) {
-                            contractDisplayCommand.getSortOptionMap().put(entry.getKey(), se.getValue());
+                            contractDisplayCommand.getSortOptionMap().put(
+                                    entry.getKey(), se.getValue());
                         }
                     }
                 }
             } else if (ff instanceof TextualFormField) {
                 contractDisplayCommand.getSortOptionMap().put(
-                        ((TextualFormField)ff).getI18nKey(),
-                        ((TextualFormField)ff).getValue());
+                        ((TextualFormField) ff).getI18nKey(),
+                        ((TextualFormField) ff).getValue());
             }
         }
-        contractDisplayCommand.setUserId(userId);
         return contractDisplayCommand;
     }
-    
+
 }

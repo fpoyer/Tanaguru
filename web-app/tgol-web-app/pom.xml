@@ -243,6 +243,15 @@
             <artifactId>easymockclassextension</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+        	<groupId>org.springframework.security</groupId>
+        	<artifactId>spring-security-ldap</artifactId>
+        </dependency>
+        <dependency>
+        	<groupId>org.springframework.ldap</groupId>
+        	<artifactId>spring-ldap-core</artifactId>
+        	<version>1.3.2.RELEASE</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

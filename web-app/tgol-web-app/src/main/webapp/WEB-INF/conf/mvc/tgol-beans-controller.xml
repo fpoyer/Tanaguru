@@ -11,11 +11,11 @@
         base-package="org.opens.tgol.controller"/>
 
     <bean id="loginController" class="org.opens.tgol.controller.LoginController">
-        <property name="guestUser" value="guest"/>
-        <property name="guestPassword" value="guest"/>
-        <property name="authenticationManager">
-            <ref bean="authenticationManager"/>
-        </property>
+<!--         <property name="guestUser" value="guest"/> -->
+<!--         <property name="guestPassword" value="guest"/> -->
+<!--         <property name="authenticationManager"> -->
+<!--             <ref bean="authenticationManager"/> -->
+<!--         </property> -->
     </bean>
 
     <bean id="homeController" class="org.opens.tgol.controller.HomeController">

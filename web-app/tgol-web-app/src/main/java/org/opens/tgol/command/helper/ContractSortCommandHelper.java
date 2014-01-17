@@ -111,7 +111,7 @@ public final class ContractSortCommandHelper  {
             List<FormFieldBuilder> displayOptionFieldsBuilderList,
             Model model) {
         
-        csc = prepareDataForSortConsole(user.getId(), csc, displayOptionFieldsBuilderList, model);
+        csc = prepareDataForSortConsole(csc, displayOptionFieldsBuilderList, model);
 
         List<ContractInfo> contractInfoSet = new LinkedList<ContractInfo>();
         List<String> inclusionSortOccurence;
@@ -154,7 +154,6 @@ public final class ContractSortCommandHelper  {
             Model model) {
         
         csc = prepareDataForSortConsole(
-                user.getId(), 
                 csc, 
                 displayOptionFieldsBuilderList, 
                 model);
@@ -369,7 +368,6 @@ public final class ContractSortCommandHelper  {
      * (score, alphabetical, date) console of the result page.
      */
     private static ContractSortCommand prepareDataForSortConsole(
-            Long userId, 
             ContractSortCommand contractSortCommand, 
             List<FormFieldBuilder> displayOptionFieldsBuilderList,
             Model model) {
@@ -381,7 +379,6 @@ public final class ContractSortCommandHelper  {
             formFieldList = FormFieldHelper.getFormFieldBuilderCopy(
                     displayOptionFieldsBuilderList);
             cdc = ContractSortCommandFactory.getInstance().getInitialisedContractDisplayCommand(
-                        userId,
                         formFieldList);
         } else {
             formFieldList = FormFieldHelper.getFormFieldBuilderCopy(

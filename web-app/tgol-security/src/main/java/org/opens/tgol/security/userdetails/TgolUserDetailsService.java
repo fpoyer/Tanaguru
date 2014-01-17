@@ -22,19 +22,32 @@
 
 package org.opens.tgol.security.userdetails;
 
+import java.util.Collection;
 import java.util.List;
+
 import org.opens.tgol.entity.service.user.UserDataService;
 import org.opens.tgol.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 
 /**
- *
+ * 
  * @author jkowalczyk
  */
 public class TgolUserDetailsService extends JdbcDaoImpl {
+
+    private RoleHierarchy roleHierarchy;
+
+    public final void setRoleHierarchy(RoleHierarchy roleHierarchy) {
+        this.roleHierarchy = roleHierarchy;
+    }
+
+    public final RoleHierarchy getRoleHierarchy() {
+        return this.roleHierarchy;
+    }
 
     private UserDataService userDataService;
     @Autowired
@@ -50,20 +63,18 @@ public class TgolUserDetailsService extends JdbcDaoImpl {
     }
 
     @Override
-    protected UserDetails createUserDetails(String username, UserDetails userFromUserQuery,
+    protected UserDetails createUserDetails(String username,
+            UserDetails userFromUserQuery,
             List<GrantedAuthority> combinedAuthorities) {
-        
+
         User user = userDataService.getUserFromEmail(username);
 
-        return new TgolUserDetails(
-                username, 
-                userFromUserQuery.getPassword(), 
-                userFromUserQuery.isEnabled(),
-                true, 
-                true, 
-                true, 
-                combinedAuthorities,
-                user);
+        Collection<GrantedAuthority> hierarchicalAuthorities = (Collection<GrantedAuthority>) this.roleHierarchy
+                .getReachableGrantedAuthorities(combinedAuthorities);
+
+        return new TgolUserDetails(username, userFromUserQuery.getPassword(),
+                userFromUserQuery.isEnabled(), true, true, true,
+                hierarchicalAuthorities, user);
     }
-    
+
 }

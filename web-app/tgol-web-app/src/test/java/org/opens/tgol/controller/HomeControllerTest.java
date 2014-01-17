@@ -139,7 +139,7 @@ public class HomeControllerTest extends TestCase {
         
         expect(mockUser.getContractSet()).andReturn(contractSet).once();
         expect(mockUser.getEmail1()).andReturn("test1@test.com").once();
-        expect(mockUser.getId()).andReturn(Long.valueOf(1)).once();
+        //expect(mockUser.getId()).andReturn(Long.valueOf(1)).once();
         expect(mockUser.getFirstName()).andReturn("").once();
         expect(mockUser.getName()).andReturn("").once();
         

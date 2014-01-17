@@ -22,6 +22,8 @@
 package org.opens.tgol.entity.service.contract;
 
 import java.util.Collection;
+import java.util.Collections;
+
 import org.apache.commons.lang.StringUtils;
 import org.opens.tanaguru.sdk.entity.service.AbstractGenericDataService;
 import org.opens.tgol.entity.contract.Contract;
@@ -30,27 +32,41 @@ import org.opens.tgol.entity.option.OptionElement;
 import org.opens.tgol.entity.user.User;
 
 /**
- *
+ * 
  * @author jkowalczyk
  */
-public class ContractDataServiceImpl extends AbstractGenericDataService<Contract, Long>
-        implements ContractDataService {
+public class ContractDataServiceImpl extends
+        AbstractGenericDataService<Contract, Long> implements
+        ContractDataService {
 
     private static final String URL_OPTION_NAME = "DOMAIN";
-    
+
     @Override
     public Collection<Contract> getAllContractsByUser(User user) {
         return ((ContractDAO) entityDao).findAllContractsByUser(user);
     }
 
-    @Override 
+    @Override
     public String getUrlFromContractOption(Contract contract) {
-        for (OptionElement optionElement : ((ContractDAO) entityDao).read(contract.getId()).getOptionElementSet()) {
-            if (StringUtils.equals(URL_OPTION_NAME, optionElement.getOption().getCode())) {
+        for (OptionElement optionElement : ((ContractDAO) entityDao).read(
+                contract.getId()).getOptionElementSet()) {
+            if (StringUtils.equals(URL_OPTION_NAME, optionElement.getOption()
+                    .getCode())) {
                 return optionElement.getValue();
             }
         }
         return "";
+    }
+
+    @Override
+    public Collection<Contract> findAll() {
+        Collection<Long> allAccessibleContractsIndex = ((ContractDAO) entityDao)
+                .findAllIndexes();
+        if (allAccessibleContractsIndex == null || allAccessibleContractsIndex.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return ((ContractDAO) entityDao)
+                .findByIndexes(allAccessibleContractsIndex);
     }
 
 }

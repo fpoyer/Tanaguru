@@ -90,11 +90,12 @@ public class UserManagementController extends AbstractUserAndContractsController
      * @return The pages audit set-up form page
      */
     @RequestMapping(value = TgolKeyStore.ADMIN_URL, method = RequestMethod.GET)
-    @Secured(TgolKeyStore.ROLE_ADMIN_KEY)
+    @Secured(TgolKeyStore.ROLE_USER_KEY)
     public String displayAdminPage(
             HttpServletRequest request,
             HttpServletResponse response,
             Model model) {
+    	Logger.getLogger(this.getClass()).debug("Displaying admin page");
         model.addAttribute(TgolKeyStore.USER_LIST_KEY, getUserDataService().findAll());
         // Due to different redirection that can lead to this page, we need
         // to test the different session attribute to display an appropriate

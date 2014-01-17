@@ -22,12 +22,13 @@
 package org.opens.tgol.controller;
 
 import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
+
 import org.opens.tgol.action.voter.ActionHandler;
 import org.opens.tgol.command.ContractSortCommand;
 import org.opens.tgol.command.helper.ContractSortCommandHelper;
 import org.opens.tgol.entity.user.User;
-import org.opens.tgol.exception.ForbiddenUserException;
 import org.opens.tgol.form.builder.FormFieldBuilder;
 import org.opens.tgol.util.TgolKeyStore;
 import org.springframework.security.access.annotation.Secured;
@@ -38,15 +39,15 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-
-/** 
- *
+/**
+ * 
  * @author jkowalczyk
  */
 @Controller
 public class HomeController extends AbstractController {
 
     private ActionHandler actionHandler;
+
     public ActionHandler getActionHandler() {
         return actionHandler;
     }
@@ -56,48 +57,43 @@ public class HomeController extends AbstractController {
     }
 
     List<FormFieldBuilder> displayOptionFieldsBuilderList;
-    public final void setDisplayOptionFieldsBuilderList(final List<FormFieldBuilder> formFieldBuilderList) {
+
+    public final void setDisplayOptionFieldsBuilderList(
+            final List<FormFieldBuilder> formFieldBuilderList) {
         this.displayOptionFieldsBuilderList = formFieldBuilderList;
     }
-    
+
     public HomeController() {
         super();
     }
 
-    @RequestMapping(value=TgolKeyStore.HOME_URL, method=RequestMethod.GET)
-    @Secured({TgolKeyStore.ROLE_USER_KEY, TgolKeyStore.ROLE_ADMIN_KEY})
+    @RequestMapping(value = TgolKeyStore.HOME_URL, method = RequestMethod.GET)
+    @Secured({ TgolKeyStore.ROLE_USER_KEY, TgolKeyStore.ROLE_ADMIN_KEY })
     public String displayHomePage(Model model) {
         User user = getCurrentUser();
-        model.addAttribute(
-                TgolKeyStore.CONTRACT_LIST_KEY, 
-                ContractSortCommandHelper.prepareContractInfo(
-                    user, 
-                    null,
-                    displayOptionFieldsBuilderList,
-                    model));
+        model.addAttribute(TgolKeyStore.CONTRACT_LIST_KEY,
+                ContractSortCommandHelper.prepareContractInfo(user, null,
+                        displayOptionFieldsBuilderList, model));
         return TgolKeyStore.HOME_VIEW_NAME;
     }
 
-    @RequestMapping(value=TgolKeyStore.HOME_URL, method = RequestMethod.POST)
-    @Secured({TgolKeyStore.ROLE_USER_KEY, TgolKeyStore.ROLE_ADMIN_KEY})
+    @RequestMapping(value = TgolKeyStore.HOME_URL, method = RequestMethod.POST)
+    @Secured({ TgolKeyStore.ROLE_USER_KEY, TgolKeyStore.ROLE_ADMIN_KEY })
     protected String submitForm(
             @ModelAttribute(TgolKeyStore.CONTRACT_SORT_COMMAND_KEY) ContractSortCommand contractDisplayCommand,
-            BindingResult result,
-            Model model,
-            HttpServletRequest request) {
+            BindingResult result, Model model, HttpServletRequest request) {
         User user = getCurrentUser();
-        if (!user.getId().equals(contractDisplayCommand.getUserId())) {
-            throw new ForbiddenUserException();
-        }
+        // XXX unnecessary security check.
+        // if (!user.getId().equals(contractDisplayCommand.getUserId())) {
+        // throw new ForbiddenUserException();
+        // }
+
         // The page is displayed with sort option. Form needs to be set up
-        model.addAttribute(
-                TgolKeyStore.CONTRACT_LIST_KEY, 
-                ContractSortCommandHelper.prepareContractInfo(
-                    user, 
-                    contractDisplayCommand,
-                    displayOptionFieldsBuilderList,
-                    model));
+        model.addAttribute(TgolKeyStore.CONTRACT_LIST_KEY,
+                ContractSortCommandHelper.prepareContractInfo(user,
+                        contractDisplayCommand, displayOptionFieldsBuilderList,
+                        model));
         return TgolKeyStore.HOME_VIEW_NAME;
     }
-    
+
 }

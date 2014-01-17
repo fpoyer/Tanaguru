@@ -12,7 +12,6 @@
                 </div>
                 <div class="span16">
                     <form:form modelAttribute="contractSortCommand" method="post" acceptCharset="UTF-8" enctype="application/x-www-form-urlencoded" class="form-stacked">
-                        <form:hidden path="userId"/>
                         <c:forEach var="formField" items="${contractSortFormField}" >
                         <c:set var="i18nKey" scope="page" value="${formField.i18nKey}"/>
                         <div class="clearfix ${auditParameterErrorClass}">

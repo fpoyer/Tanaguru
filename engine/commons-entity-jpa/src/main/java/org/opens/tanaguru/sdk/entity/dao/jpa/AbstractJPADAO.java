@@ -25,9 +25,11 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+
 import org.opens.tanaguru.sdk.entity.Entity;
 import org.opens.tanaguru.sdk.entity.dao.GenericDAO;
 
@@ -40,11 +42,25 @@ import org.opens.tanaguru.sdk.entity.dao.GenericDAO;
 public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
         implements GenericDAO<E, K> {
 
+    private String entityClassName;
+
+    protected final String getEntityClassName() {
+        return entityClassName;
+    }
+
     @PersistenceContext
     protected EntityManager entityManager;
 
     public AbstractJPADAO() {
         super();
+        entityClassName = getEntityClass().getName();
+    }
+
+    @Override
+    public Collection<K> findAllIndexes() {
+        Query query = entityManager.createQuery("SELECT o.id FROM "
+                + getEntityClassName() + " o");
+        return query.getResultList();
     }
 
     @Override
@@ -55,7 +71,7 @@ public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
 
     /**
      * If the ID of the object is null the delete action is skipped.
-     *
+     * 
      * @param entity
      */
     @Override
@@ -68,7 +84,7 @@ public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
 
     /**
      * If the key is null the delete action is skipped.
-     *
+     * 
      * @param key
      */
     @Override
@@ -77,7 +93,8 @@ public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
             return;
         }
 
-        Query query = entityManager.createQuery("DELETE FROM " + getEntityClass().getName() + " o WHERE o.id = :id");
+        Query query = entityManager.createQuery("DELETE FROM "
+                + getEntityClassName() + " o WHERE o.id = :id");
         query.setParameter("id", key);
         query.executeUpdate();
     }
@@ -91,7 +108,8 @@ public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
 
     @Override
     public List<E> findAll() {
-        Query query = entityManager.createQuery("SELECT o FROM " + getEntityClass().getName() + " o");
+        Query query = entityManager.createQuery("SELECT o FROM "
+                + getEntityClassName() + " o");
         return query.getResultList();
     }
 
@@ -139,12 +157,12 @@ public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
     }
 
     /**
-     * Due to memory leaks, the entity manager has to be flushed and closed after
-     * each db operation. All the elements retrieved while the db access keep
-     * a reference to the entity manager and can never be garbaged.
-     * By flushing and closing the entity manager, these objects can be free.
+     * Due to memory leaks, the entity manager has to be flushed and closed
+     * after each db operation. All the elements retrieved while the db access
+     * keep a reference to the entity manager and can never be garbaged. By
+     * flushing and closing the entity manager, these objects can be free.
      */
-    private void flushAndCloseEntityManager(){
+    private void flushAndCloseEntityManager() {
         entityManager.flush();
         entityManager.close();
     }
