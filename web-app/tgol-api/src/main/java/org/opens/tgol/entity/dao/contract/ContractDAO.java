@@ -25,31 +25,30 @@ import java.util.Collection;
 
 import org.opens.tanaguru.sdk.entity.dao.GenericDAO;
 import org.opens.tgol.entity.contract.Contract;
-import org.opens.tgol.entity.option.OptionElement;
 import org.opens.tgol.entity.user.User;
 import org.springframework.security.access.prepost.PostFilter;
 
 /**
- *
+ * 
  * @author jkowalczyk
  */
 public interface ContractDAO extends GenericDAO<Contract, Long> {
 
-    /**
-     *
-     * @param user
-     * @return
-     *      the collection of contracts for a given user
-     */
-    Collection<Contract> findAllContractsByUser(User user);
-    
-    /**
-     * Filtering returned indexes by current user read right.
-     */
-    @PostFilter("hasPermission(filterObject, 'org.opens.tgol.entity.contract.ContractImpl', 'read')")
-    @Override
-    Collection<Long> findAllIndexes();
-    
-    Collection<Contract> findByIndexes(Collection<Long> indexes);
-    
+	/**
+	 * 
+	 * @param user
+	 * @return the collection of contracts for a given user
+	 */
+	Collection<Contract> findAllContractsByUser(User user);
+
+	/**
+	 * Filtering returned indexes by current user read right.
+	 */
+	@PostFilter("hasPermission(filterObject, 'org.opens.tgol.entity.contract.ContractImpl', 'read')")
+	@Override
+	Collection<Long> findAllIndexes();
+
+	@Override
+	Collection<Contract> findByIndexes(Collection<Long> indexes);
+
 }

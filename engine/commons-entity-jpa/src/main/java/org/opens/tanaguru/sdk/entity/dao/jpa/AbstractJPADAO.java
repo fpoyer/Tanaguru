@@ -24,6 +24,7 @@ package org.opens.tanaguru.sdk.entity.dao.jpa;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -40,130 +41,150 @@ import org.opens.tanaguru.sdk.entity.dao.GenericDAO;
  * @param <K>
  */
 public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
-        implements GenericDAO<E, K> {
+		implements GenericDAO<E, K> {
 
-    private String entityClassName;
+	private String entityClassName;
 
-    protected final String getEntityClassName() {
-        return entityClassName;
-    }
+	protected final String getEntityClassName() {
+		return entityClassName;
+	}
 
-    @PersistenceContext
-    protected EntityManager entityManager;
+	@PersistenceContext
+	protected EntityManager entityManager;
 
-    public AbstractJPADAO() {
-        super();
-        entityClassName = getEntityClass().getName();
-    }
+	public AbstractJPADAO() {
+		super();
+		entityClassName = getEntityClass().getName();
+	}
 
-    @Override
-    public Collection<K> findAllIndexes() {
-        Query query = entityManager.createQuery("SELECT o.id FROM "
-                + getEntityClassName() + " o");
-        return query.getResultList();
-    }
+	@SuppressWarnings("unchecked")
+	@Override
+	public Collection<K> findAllIndexes() {
+		Query query = entityManager.createQuery("SELECT o.id FROM "
+				+ getEntityClassName() + " o");
+		return query.getResultList();
+	}
 
-    @Override
-    public void create(E entity) {
-        entityManager.persist(entity);
-        flushAndCloseEntityManager();
-    }
+	@SuppressWarnings("unchecked")
+	@Override
+	public Collection<E> findByIndexes(Collection<K> indexes) {
+		StringBuilder queryBuilder = new StringBuilder("SELECT o FROM ")
+				.append(getEntityClassName()).append(" o WHERE o.id IN (");
+		Iterator<K> it = indexes.iterator();
+		while (it.hasNext()) {
+			K index = it.next();
+			queryBuilder.append(index.toString());
+			if (it.hasNext()) {
+				queryBuilder.append(',');
+			}
+		}
+		queryBuilder.append(")");
+		Query query = entityManager.createQuery(queryBuilder.toString());
+		return query.getResultList();
+	}
 
-    /**
-     * If the ID of the object is null the delete action is skipped.
-     * 
-     * @param entity
-     */
-    @Override
-    public void delete(E entity) {
-        if (entity.getId() == null) {
-            return;
-        }
-        flushAndCloseEntityManager();
-    }
+	@Override
+	public void create(E entity) {
+		entityManager.persist(entity);
+		flushAndCloseEntityManager();
+	}
 
-    /**
-     * If the key is null the delete action is skipped.
-     * 
-     * @param key
-     */
-    @Override
-    public void delete(K key) {
-        if (key == null) {
-            return;
-        }
+	/**
+	 * If the ID of the object is null the delete action is skipped.
+	 * 
+	 * @param entity
+	 */
+	@Override
+	public void delete(E entity) {
+		if (entity.getId() == null) {
+			return;
+		}
+		flushAndCloseEntityManager();
+	}
 
-        Query query = entityManager.createQuery("DELETE FROM "
-                + getEntityClassName() + " o WHERE o.id = :id");
-        query.setParameter("id", key);
-        query.executeUpdate();
-    }
+	/**
+	 * If the key is null the delete action is skipped.
+	 * 
+	 * @param key
+	 */
+	@Override
+	public void delete(K key) {
+		if (key == null) {
+			return;
+		}
 
-    @Override
-    public void delete(Collection<E> entitySet) {
-        for (E entity : entitySet) {
-            delete(entity);
-        }
-    }
+		Query query = entityManager.createQuery("DELETE FROM "
+				+ getEntityClassName() + " o WHERE o.id = :id");
+		query.setParameter("id", key);
+		query.executeUpdate();
+	}
 
-    @Override
-    public List<E> findAll() {
-        Query query = entityManager.createQuery("SELECT o FROM "
-                + getEntityClassName() + " o");
-        return query.getResultList();
-    }
+	@Override
+	public void delete(Collection<E> entitySet) {
+		for (E entity : entitySet) {
+			delete(entity);
+		}
+	}
 
-    protected abstract Class<? extends E> getEntityClass();
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<E> findAll() {
+		Query query = entityManager.createQuery("SELECT o FROM "
+				+ getEntityClassName() + " o");
+		return query.getResultList();
+	}
 
-    @Override
-    public E read(K key) {
-        E result = (E) entityManager.find(getEntityClass(), key);
-        return result;
-    }
+	protected abstract Class<? extends E> getEntityClass();
 
-    @Override
-    public void refresh(E entity) {
-        entityManager.refresh(this);
-    }
+	@Override
+	public E read(K key) {
+		E result = (E) entityManager.find(getEntityClass(), key);
+		return result;
+	}
 
-    @Override
-    public E saveOrUpdate(E entity) {
-        if (entity.getId() == null) {
-            create(entity);
-        } else {
-            entity = update(entity);
-        }
-        return entity;
-    }
+	@Override
+	public void refresh(E entity) {
+		entityManager.refresh(this);
+	}
 
-    @Override
-    public Collection<E> saveOrUpdate(Collection<E> entitySet) {
-        Collection<E> resultSet = new HashSet<E>();
-        for (E entity : entitySet) {
-            resultSet.add(saveOrUpdate(entity));
-        }
-        return resultSet;
-    }
+	@Override
+	public E saveOrUpdate(E entity) {
+		if (entity.getId() == null) {
+			create(entity);
+		} else {
+			entity = update(entity);
+		}
+		return entity;
+	}
 
-    public void setEntityManager(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
+	@Override
+	public Collection<E> saveOrUpdate(Collection<E> entitySet) {
+		Collection<E> resultSet = new HashSet<E>();
+		for (E entity : entitySet) {
+			resultSet.add(saveOrUpdate(entity));
+		}
+		return resultSet;
+	}
 
-    @Override
-    public E update(E entity) {
-        E result = entityManager.merge(entity);
-        flushAndCloseEntityManager();
-        return result;
-    }
+	public void setEntityManager(EntityManager entityManager) {
+		this.entityManager = entityManager;
+	}
 
-    /**
-     * Due to memory leaks, the entity manager has to be flushed and closed
-     * after each db operation. All the elements retrieved while the db access
-     * keep a reference to the entity manager and can never be garbaged. By
-     * flushing and closing the entity manager, these objects can be free.
-     */
-    private void flushAndCloseEntityManager() {
-        entityManager.flush();
-        entityManager.close();
-    }
+	@Override
+	public E update(E entity) {
+		E result = entityManager.merge(entity);
+		flushAndCloseEntityManager();
+		return result;
+	}
+
+	/**
+	 * Due to memory leaks, the entity manager has to be flushed and closed
+	 * after each db operation. All the elements retrieved while the db access
+	 * keep a reference to the entity manager and can never be garbaged. By
+	 * flushing and closing the entity manager, these objects can be free.
+	 */
+	private void flushAndCloseEntityManager() {
+		entityManager.flush();
+		entityManager.close();
+	}
 }

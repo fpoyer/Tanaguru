@@ -23,6 +23,7 @@ package org.opens.tanaguru.sdk.entity.dao;
 
 import java.io.Serializable;
 import java.util.Collection;
+
 import org.opens.tanaguru.sdk.entity.Entity;
 
 /**
@@ -31,82 +32,89 @@ import org.opens.tanaguru.sdk.entity.Entity;
  */
 public interface GenericDAO<E extends Entity, K extends Serializable> {
 
-    /**
-     *
-     * @param entity
-     *            the entity to create
-     */
-    void create(E entity);
+	/**
+	 * 
+	 * @param entity
+	 *            the entity to create
+	 */
+	void create(E entity);
 
-    /**
-     *
-     * @param entity
-     *            the entity to delete
-     */
-    void delete(E entity);
+	/**
+	 * 
+	 * @param entity
+	 *            the entity to delete
+	 */
+	void delete(E entity);
 
-    /**
-     *
-     * @param key
-     *            the prmiary key of the entity to delete
-     */
-    void delete(K key);
+	/**
+	 * 
+	 * @param key
+	 *            the prmiary key of the entity to delete
+	 */
+	void delete(K key);
 
-    /**
-     * 
-     * @param entitySet
-     */
-    void delete(Collection<E> entitySet);
+	/**
+	 * 
+	 * @param entitySet
+	 */
+	void delete(Collection<E> entitySet);
 
-    /**
-     *
-     * @return the entity list found
-     */
-    Collection<E> findAll();
-    
-    
-    /**
-     * 
-     * @return the index list found
-     */
-    Collection<K> findAllIndexes();
+	/**
+	 * 
+	 * @return the entity list found
+	 */
+	Collection<E> findAll();
 
-    /**
-     *
-     * @param key
-     *            the key of the entity to read
-     * @return the entity read
-     */
-    E read(K key);
+	/**
+	 * 
+	 * @return the index list found
+	 */
+	Collection<K> findAllIndexes();
 
-    /**
-     *
-     * @param entity
-     *            the entity to refresh
-     */
-    void refresh(E entity);
+	/**
+	 * @param indexes
+	 *            a list of index of entities to return
+	 * @return the collection of entities corresponding to the list of index
+	 *         given
+	 */
+	Collection<E> findByIndexes(Collection<K> indexes);
 
-    /**
-     * Creates the object in the database if the ID is null. Updates the object
-     * in the database if the ID is not null.
-     *
-     * @param entity
-     * @return the object after the action.
-     */
-    E saveOrUpdate(E entity);
+	/**
+	 * 
+	 * @param key
+	 *            the key of the entity to read
+	 * @return the entity read
+	 */
+	E read(K key);
 
-    /**
-     * 
-     * @param entitySet
-     * @return
-     */
-    Collection<E> saveOrUpdate(Collection<E> entitySet);
+	/**
+	 * 
+	 * @param entity
+	 *            the entity to refresh
+	 */
+	void refresh(E entity);
 
-    /**
-     *
-     * @param entity
-     *            the entity to update
-     * @return the entity updated
-     */
-    E update(E entity);
+	/**
+	 * Creates the object in the database if the ID is null. Updates the object
+	 * in the database if the ID is not null.
+	 * 
+	 * @param entity
+	 * @return the object after the action.
+	 */
+	E saveOrUpdate(E entity);
+
+	/**
+	 * 
+	 * @param entitySet
+	 * @return
+	 */
+	Collection<E> saveOrUpdate(Collection<E> entitySet);
+
+	/**
+	 * 
+	 * @param entity
+	 *            the entity to update
+	 * @return the entity updated
+	 */
+	E update(E entity);
 }

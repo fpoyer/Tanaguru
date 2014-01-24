@@ -23,6 +23,8 @@ package org.opens.tanaguru.sdk.entity.service;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
+
 import org.opens.tanaguru.sdk.entity.Entity;
 import org.opens.tanaguru.sdk.entity.dao.GenericDAO;
 import org.opens.tanaguru.sdk.entity.factory.GenericFactory;
@@ -34,118 +36,129 @@ import org.opens.tanaguru.sdk.entity.factory.GenericFactory;
  * @author jkowalczyk
  */
 public abstract class AbstractGenericDataService<E extends Entity, K extends Serializable>
-        implements GenericDataService<E, K> {
+		implements GenericDataService<E, K> {
 
-    protected GenericDAO<E, K> entityDao;
-    protected GenericFactory<E> entityFactory;
+	protected GenericDAO<E, K> entityDao;
+	protected GenericFactory<E> entityFactory;
 
-    public AbstractGenericDataService() {
-        super();
-    }
+	public AbstractGenericDataService() {
+		super();
+	}
 
-    /**
-     *
-     * @return the entity created
-     */
-    @Override
-    public E create() {
-        return entityFactory.create();
-    }
+	/**
+	 * 
+	 * @return the entity created
+	 */
+	@Override
+	public E create() {
+		return entityFactory.create();
+	}
 
-    /**
-     *
-     * @param entity
-     *            the entity to create
-     */
-    @Override
-    public void create(E entity) {
-        entityDao.create(entity);
-    }
+	/**
+	 * 
+	 * @param entity
+	 *            the entity to create
+	 */
+	@Override
+	public void create(E entity) {
+		entityDao.create(entity);
+	}
 
-    /**
-     *
-     * @param entity
-     *            the entity to delete
-     */
-    @Override
-    public void delete(E entity) {
-        entityDao.delete(entity);
-    }
+	/**
+	 * 
+	 * @param entity
+	 *            the entity to delete
+	 */
+	@Override
+	public void delete(E entity) {
+		entityDao.delete(entity);
+	}
 
-    @Override
-    public void delete(K key) {
-        entityDao.delete(key);
-    }
+	@Override
+	public void delete(K key) {
+		entityDao.delete(key);
+	}
 
-    @Override
-    public void delete(Collection<E> entitySet) {
-        entityDao.delete(entitySet);
-    }
+	@Override
+	public void delete(Collection<E> entitySet) {
+		entityDao.delete(entitySet);
+	}
 
-    @Override
-    public Collection<E> findAll() {
-        return entityDao.findAll();
-    }
+	@Override
+	public Collection<E> findAll() {
+		// Roughly equivalent to :
+		// return entityDao.findAll();
+		// But result may be filtered by current User/Principal rights using
+		// ACLs (ex: for Contracts, see
+		// org.opens.tgol.entity.dao.contract.ContractDAO)
 
-    /**
-     *
-     * @param key
-     *            the key of the entity to read
-     * @return the entity read
-     */
-    @Override
-    public E read(K key) {
-        return entityDao.read(key);
-    }
+		Collection<K> allAccessibleContractsIndex = entityDao.findAllIndexes();
+		if (allAccessibleContractsIndex == null
+				|| allAccessibleContractsIndex.isEmpty()) {
+			return Collections.emptySet();
+		}
+		return entityDao.findByIndexes(allAccessibleContractsIndex);
+	}
 
-    /**
-     * 
-     * @param entity
-     * @return
-     */
-    @Override
-    public E saveOrUpdate(E entity) {
-        return entityDao.saveOrUpdate(entity);
-    }
+	/**
+	 * 
+	 * @param key
+	 *            the key of the entity to read
+	 * @return the entity read
+	 */
+	@Override
+	public E read(K key) {
+		return entityDao.read(key);
+	}
 
-    /**
-     * 
-     * @param entitySet
-     * @return
-     */
-    @Override
-    public Collection<E> saveOrUpdate(Collection<E> entitySet) {
-        return entityDao.saveOrUpdate(entitySet);
-    }
+	/**
+	 * 
+	 * @param entity
+	 * @return
+	 */
+	@Override
+	public E saveOrUpdate(E entity) {
+		return entityDao.saveOrUpdate(entity);
+	}
 
-    /**
-     *
-     * @param entityDao
-     *            the entity DAO to set
-     */
-    @Override
-    public void setEntityDao(GenericDAO<E, K> entityDao) {
-        this.entityDao = entityDao;
-    }
+	/**
+	 * 
+	 * @param entitySet
+	 * @return
+	 */
+	@Override
+	public Collection<E> saveOrUpdate(Collection<E> entitySet) {
+		return entityDao.saveOrUpdate(entitySet);
+	}
 
-    /**
-     *
-     * @param entityFactory
-     *            the entity factory to set
-     */
-    @Override
-    public void setEntityFactory(GenericFactory<E> entityFactory) {
-        this.entityFactory = entityFactory;
-    }
+	/**
+	 * 
+	 * @param entityDao
+	 *            the entity DAO to set
+	 */
+	@Override
+	public void setEntityDao(GenericDAO<E, K> entityDao) {
+		this.entityDao = entityDao;
+	}
 
-    /**
-     *
-     * @param entity
-     *            the entity to update
-     * @return the entity updated
-     */
-    @Override
-    public E update(E entity) {
-        return entityDao.update(entity);
-    }
+	/**
+	 * 
+	 * @param entityFactory
+	 *            the entity factory to set
+	 */
+	@Override
+	public void setEntityFactory(GenericFactory<E> entityFactory) {
+		this.entityFactory = entityFactory;
+	}
+
+	/**
+	 * 
+	 * @param entity
+	 *            the entity to update
+	 * @return the entity updated
+	 */
+	@Override
+	public E update(E entity) {
+		return entityDao.update(entity);
+	}
 }

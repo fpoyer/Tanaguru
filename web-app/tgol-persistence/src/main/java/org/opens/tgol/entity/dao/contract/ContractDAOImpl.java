@@ -22,11 +22,9 @@
 package org.opens.tgol.entity.dao.contract;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 
 import org.opens.tanaguru.sdk.entity.dao.jpa.AbstractJPADAO;
 import org.opens.tgol.entity.contract.Contract;
@@ -47,17 +45,6 @@ public class ContractDAOImpl extends AbstractJPADAO<Contract, Long> implements
     @Override
     protected Class<? extends Contract> getEntityClass() {
         return ContractImpl.class;
-    }
-
-    public Collection<Long> findAllIndex() {
-        TypedQuery<Long> query = entityManager.createQuery(
-                "SELECT o.id_" + getEntityClassName() + " FROM "
-                        + getEntityClassName() + " o", getKeyClass());
-        return query.getResultList();
-    }
-
-    protected Class<Long> getKeyClass() {
-        return Long.class;
     }
 
     @Override
@@ -96,22 +83,6 @@ public class ContractDAOImpl extends AbstractJPADAO<Contract, Long> implements
         }
     }
 
-    @Override
-    public Collection<Contract> findByIndexes(Collection<Long> indexes) {
-        // Optimization: setting capacity at the correct value right away
-        StringBuilder queryBuilder = new StringBuilder("SELECT o FROM ").append(getEntityClassName())
-                .append(" o WHERE o.id IN (");
-        Iterator<Long> it = indexes.iterator();
-        while (it.hasNext()) {
-            Long index = it.next();
-            queryBuilder.append(index.longValue());
-            if (it.hasNext()) {
-                queryBuilder.append(',');
-            }
-        }
-        queryBuilder.append(")");
-        Query query = entityManager.createQuery(queryBuilder.toString());
-        return query.getResultList();
-    }
+
 
 }
