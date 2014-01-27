@@ -40,11 +40,19 @@ import org.opens.tanaguru.sdk.entity.dao.GenericDAO;
 public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
         implements GenericDAO<E, K> {
 
+    
+    private String entityClassName;
+
+    protected final String getEntityClassName() {
+        return entityClassName;
+    }
+    
     @PersistenceContext
     protected EntityManager entityManager;
 
     public AbstractJPADAO() {
         super();
+        entityClassName = getEntityClass().getName();
     }
 
     @Override
@@ -77,7 +85,7 @@ public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
             return;
         }
 
-        Query query = entityManager.createQuery("DELETE FROM " + getEntityClass().getName() + " o WHERE o.id = :id");
+        Query query = entityManager.createQuery("DELETE FROM " + getEntityClassName() + " o WHERE o.id = :id");
         query.setParameter("id", key);
         query.executeUpdate();
     }
@@ -91,10 +99,35 @@ public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
 
     @Override
     public List<E> findAll() {
-        Query query = entityManager.createQuery("SELECT o FROM " + getEntityClass().getName() + " o");
+        Query query = entityManager.createQuery("SELECT o FROM " + getEntityClassName() + " o");
+        return query.getResultList();
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<K> findAllIndexes() {
+        Query query = entityManager.createQuery("SELECT o.id FROM "
+                + getEntityClassName() + " o");
         return query.getResultList();
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<E> findByIndexes(Collection<K> indexes) {
+        StringBuilder queryBuilder = new StringBuilder("SELECT o FROM ")
+                .append(getEntityClassName()).append(" o WHERE o.id IN (");
+        Iterator<K> it = indexes.iterator();
+        while (it.hasNext()) {
+            K index = it.next();
+            queryBuilder.append(index.toString());
+            if (it.hasNext()) {
+                queryBuilder.append(',');
+            }
+        }
+        queryBuilder.append(")");
+        Query query = entityManager.createQuery(queryBuilder.toString());
+        return query.getResultList();
+    }
     protected abstract Class<? extends E> getEntityClass();
 
     @Override
