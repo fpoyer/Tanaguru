@@ -25,8 +25,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import org.opens.tanaguru.entity.audit.Audit;
+
 import org.opens.tanaguru.entity.parameterization.Parameter;
+import org.opens.tgol.entity.contract.Act;
 import org.opens.tgol.entity.contract.Contract;
 
 /**
@@ -44,12 +45,11 @@ public interface TanaguruOrchestrator {
      * @param locale
      * @return
      */
-    Audit auditPage(
-            Contract contract,
+    Act auditPage(Act act, 
             String pageUrl,
-            String clientIp,
             Set<Parameter> paramSet, 
-            Locale locale);
+            Locale locale,
+            String emailTo);
     
     /**
      *
@@ -60,12 +60,13 @@ public interface TanaguruOrchestrator {
      * @param locale
      * @return
      */
-    Audit auditPageUpload(
+    Act auditPageUpload(
+            Act act,
             Contract contract,
             Map <String, String> fileMap,
-            String clientIp,
             Set<Parameter> paramSet, 
-            Locale locale);
+            Locale locale,
+            String emailTo);
 
     /**
      *
@@ -75,12 +76,13 @@ public interface TanaguruOrchestrator {
      * @param paramSet
      * @param locale
      */
-    void auditSite(
+    Act auditSite(
+            Act act,
             Contract contract,
             String siteUrl,
-            String clientIp,
             Set<Parameter> paramSet, 
-            Locale locale);
+            Locale locale,
+            String emailTo);
 
     /**
      *
@@ -91,13 +93,14 @@ public interface TanaguruOrchestrator {
      * @param locale
      * @return
      */
-    Audit auditSite(
+    Act auditSite(
+            Act act,
             Contract contract,
             String siteUrl,
             List<String> pageUrlList,
-            String clientIp,
             Set<Parameter> paramSet, 
-            Locale locale);
+            Locale locale,
+            String emailTo);
     
     /**
      * 
@@ -108,11 +111,12 @@ public interface TanaguruOrchestrator {
      * @param parameterSet
      * @param locale 
      */
-    void auditScenario(
+    Act auditScenario(
+            Act act,
             Contract contract,
             Long idScenario, 
-            String clientIp,
             Set<Parameter> parameterSet, 
-            Locale locale);
+            Locale locale,
+            String emailTo);
     
 }

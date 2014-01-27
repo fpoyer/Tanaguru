@@ -39,10 +39,8 @@ import org.opens.tanaguru.service.AuditService;
 import org.opens.tanaguru.service.AuditServiceListener;
 import org.opens.tgol.emailsender.EmailSender;
 import org.opens.tgol.entity.contract.*;
-import org.opens.tgol.entity.factory.contract.ActFactory;
 import org.opens.tgol.entity.scenario.Scenario;
 import org.opens.tgol.entity.service.contract.ActDataService;
-import org.opens.tgol.entity.service.contract.ScopeDataService;
 import org.opens.tgol.entity.service.scenario.ScenarioDataService;
 import org.opens.tgol.exception.KrashAuditException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,14 +57,8 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
     private ActDataService actDataService;
     private AuditDataService auditDataService;
     private ScenarioDataService scenarioDataService;
-    private ActFactory actFactory;
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
-    private Map<ScopeEnum, Scope> scopeMap = new EnumMap<ScopeEnum, Scope>(ScopeEnum.class);
-    private void initializeScopeMap(ScopeDataService ScopeDataService) {
-        for (Scope scope : ScopeDataService.findAll()) {
-            scopeMap.put(scope.getCode(), scope);
-        }
-    }
+    
     
     private EmailSender emailSender;
     /*
@@ -148,28 +140,24 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
             AuditService auditService,
             AuditDataService auditDataService,
             ActDataService actDataService,
-            ActFactory actFactory,
-            ScopeDataService scopeDataService,
             ScenarioDataService scenarioDataService, 
             ThreadPoolTaskExecutor threadPoolTaskExecutor,
             EmailSender emailSender) {
         this.auditService = auditService;
         this.actDataService = actDataService;
         this.auditDataService = auditDataService;
-        this.actFactory = actFactory;
         this.scenarioDataService = scenarioDataService;
-        initializeScopeMap(scopeDataService);
         this.threadPoolTaskExecutor = threadPoolTaskExecutor;
         this.emailSender = emailSender;
     }
 
     @Override
-    public Audit auditPage(
-            Contract contract,
+    public Act auditPage(
+            Act act,
             String pageUrl,
-            String clientIp,
             Set<Parameter> parameterSet, 
-            Locale locale) {
+            Locale locale,
+            String emailTo) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Page audit on " + pageUrl);
             for (Parameter param : parameterSet) {
@@ -177,7 +165,6 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                         param.getParameterElement().getParameterElementCode());
             }
         }
-        Act act = createAct(contract, ScopeEnum.PAGE, clientIp);
         AuditTimeoutThread auditPageThread =
                 new AuditPageThread(
                     pageUrl, 
@@ -185,30 +172,26 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                     act, 
                     parameterSet, 
                     locale,
+                    emailTo,
                     delay);
-        Audit audit = submitAuditAndLaunch(auditPageThread, act);
-        return audit;
+        submitAuditAndLaunch(auditPageThread, act);
+        return act;
     }
 
     @Override
-    public Audit auditPageUpload(
+    public Act auditPageUpload(
+            Act act,
             Contract contract,
             Map<String, String> fileMap,
-            String clientIp,
             Set<Parameter> parameterSet, 
-            Locale locale) {
+            Locale locale,
+            String emailTo) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("auditPage Upload on " + fileMap.size() + " files");
             for (Parameter param : parameterSet) {
                 LOGGER.debug("param " + param.getValue() + " "+
                         param.getParameterElement().getParameterElementCode());
             }
-        }
-        Act act;
-        if (fileMap.size()>1) {
-            act = createAct(contract, ScopeEnum.GROUPOFFILES, clientIp);
-        } else {
-            act = createAct(contract, ScopeEnum.FILE, clientIp);
         }
         AuditTimeoutThread auditPageUploadThread =
                 new AuditPageUploadThread(
@@ -217,18 +200,19 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                     act, 
                     parameterSet, 
                     locale,
+                    emailTo,
                     delay);
-        Audit audit = submitAuditAndLaunch(auditPageUploadThread, act);
-        return audit;
+        submitAuditAndLaunch(auditPageUploadThread, act);
+        return act;
     }
 
     @Override
-    public void auditSite(
+    public Act auditSite(Act act, 
             Contract contract,
             String siteUrl,
-            String clientIp,
             Set<Parameter> parameterSet, 
-            Locale locale) {
+            Locale locale,
+            String emailTo) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Site audit on " + siteUrl);
             for (Parameter param : parameterSet) {
@@ -236,24 +220,25 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                         param.getParameterElement().getParameterElementCode());
             }
         }
-        Act act = createAct(contract, ScopeEnum.DOMAIN, clientIp);
         AuditThread auditSiteThread =
                 new AuditSiteThread(
                     siteUrl,
                     auditService,
                     act,
                     parameterSet, 
-                    locale);
+                    locale, emailTo);
         threadPoolTaskExecutor.submit(auditSiteThread);
+        return act;
     }
     
     @Override
-    public void auditScenario(
+    public Act auditScenario(
+            Act act,
             Contract contract,
             Long idScenario,
-            String clientIp,
             Set<Parameter> parameterSet, 
-            Locale locale) {
+            Locale locale,
+            String emailTo) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Scenarion audit on scenario with id" + idScenario);
             for (Parameter param : parameterSet) {
@@ -261,7 +246,6 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                         param.getParameterElement().getParameterElementCode());
             }
         }
-        Act act = createAct(contract, ScopeEnum.SCENARIO, clientIp);
         Scenario scenario = scenarioDataService.read(idScenario);
         AuditThread auditScenarioThread =
                 new AuditScenarioThread(
@@ -270,18 +254,20 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                     auditService,
                     act,
                     parameterSet, 
-                    locale);
+                    locale, emailTo);
         threadPoolTaskExecutor.submit(auditScenarioThread);
+        return act;
     }
 
     @Override
-    public Audit auditSite(
+    public Act auditSite(
+            Act act, 
             Contract contract,
             String siteUrl,
             final List<String> pageUrlList,
-            String clientIp,
             Set<Parameter> parameterSet, 
-            Locale locale) {
+            Locale locale, 
+            String emailTo) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Group of pages audit");
             for (String str :pageUrlList) {
@@ -292,7 +278,6 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                         param.getParameterElement().getParameterElementCode());
             }
         }
-        Act act = createAct(contract, ScopeEnum.GROUPOFPAGES, clientIp);
         AuditTimeoutThread auditPageThread = 
                 new AuditGroupOfPagesThread(
                     siteUrl, 
@@ -301,9 +286,10 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                     act, 
                     parameterSet, 
                     locale,
+                    emailTo,
                     delay);
-        Audit audit = submitAuditAndLaunch(auditPageThread, act);
-        return audit;
+        submitAuditAndLaunch(auditPageThread, act);
+        return act;
     }
 
     /**
@@ -342,8 +328,7 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
      * @param locale
      * @param exception 
      */
-    private void sendAuditResultEmail(Act act, Locale locale) {
-        String emailTo = act.getContract().getUser().getEmail1();
+    private void sendAuditResultEmail(String emailTo, Act act, Locale locale) {
         if (this.emailSentToUserExclusionList.contains(emailTo)) {
             LOGGER.info("Email not set cause user " + emailTo + " belongs to "
                     + "exlusion list");
@@ -366,7 +351,7 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
      * @param locale
      * @param exception 
      */
-    private void sendKrashAuditEmail(Act act, Locale locale, Exception exception) {
+    private void sendKrashAuditEmail(String emailTo, Act act, Locale locale, Exception exception) {
         ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME, locale);
         String emailFrom = bundle.getString(RECIPIENT_KEY);
         String projectName = getProjectNameFromAct(act);
@@ -385,7 +370,7 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
             
             String msgContent = bundle.getString(KRASH_ADMIN_MSG_CONTENT_KEY);
             msgContent = StringUtils.replace(msgContent, PROJECT_NAME_TO_REPLACE, projectName);
-            msgContent = StringUtils.replace(msgContent, USER_EMAIL_TO_REPLACE, act.getContract().getUser().getEmail1());
+            msgContent = StringUtils.replace(msgContent, USER_EMAIL_TO_REPLACE, emailTo);
             msgContent = StringUtils.replace(msgContent, HOST_TO_REPLACE, host);
             msgContent = StringUtils.replace(msgContent, EXCEPTION_TO_REPLACE, ExceptionUtils.getStackTrace(exception));
             if (act.getAudit().getSubject() != null) {
@@ -395,7 +380,6 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
             sendEmail(emailFrom, emailToSet, msgSubject, msgContent);
         }
 
-        String emailTo = act.getContract().getUser().getEmail1();
         if (this.emailSentToUserExclusionList.contains(emailTo)) {
             LOGGER.info("Email not set cause user " + emailTo + " belongs to "
                     + "exlusion list");
@@ -510,22 +494,6 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
     }
     
     /**
-     * This method initializes an act instance and persists it.
-     * @param contract
-     * @param scope
-     * @return
-     */
-    private Act createAct(Contract contract, ScopeEnum scope, String clientIp) {
-        Date beginDate = new Date();
-        Act act = actFactory.createAct(beginDate, contract);
-        act.setStatus(ActStatus.RUNNING);
-        act.setScope(scopeMap.get(scope));
-        act.setClientIp(clientIp);
-        actDataService.saveOrUpdate(act);
-        return act;
-    }
-    
-    /**
      * 
      * @param act
      * @return 
@@ -546,6 +514,11 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
      * 
      */
     private abstract class AuditThread implements Runnable, AuditServiceListener {
+        
+        private String emailTo;
+        protected String getEmailTo() {
+            return emailTo;
+        }
 
         private AuditService auditService;
         public AuditService getAuditService() {
@@ -641,7 +614,7 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                 AuditService auditService,
                 Act act,
                 Set<Parameter> parameterSet, 
-                Locale locale) {
+                Locale locale, String emailTo) {
             if (parameterSet != null) {
                 this.parameterSet.addAll(parameterSet);
             }
@@ -649,6 +622,7 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
             this.currentAct = act;
             this.locale = locale;
             startDate = act.getBeginDate();
+            this.emailTo = emailTo;
         }
         
         @Override
@@ -742,7 +716,7 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
             }
             act = actDataService.saveOrUpdate(act);
             if (exception != null) {
-                sendKrashAuditEmail(act, locale, exception);
+                sendKrashAuditEmail(getEmailTo(), act, locale, exception);
                 actDataService.delete(act.getId());
                 auditDataService.delete(audit.getId());
                 this.audit = null;
@@ -763,8 +737,8 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                 AuditService auditService,
                 Act act,
                 Set<Parameter> parameterSet, 
-                Locale locale) {
-            super(auditService, act, parameterSet, locale);
+                Locale locale, String emailTo) {
+            super(auditService, act, parameterSet, locale, emailTo);
             this.siteUrl = siteUrl;
             LOGGER.info("Launching audit site on " + this.siteUrl);
         }
@@ -781,7 +755,7 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
         protected void onActTerminated(Act act, Audit audit) {
             super.onActTerminated(act, audit);
             if (getException() == null) {
-                sendAuditResultEmail(act, getLocale());
+                sendAuditResultEmail(getEmailTo(), act, getLocale());
             }
             LOGGER.info("Audit site terminated on " + this.siteUrl);
         }
@@ -803,8 +777,8 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                 AuditService auditService,
                 Act act,
                 Set<Parameter> parameterSet, 
-                Locale locale) {
-            super(auditService, act, parameterSet, locale);
+                Locale locale, String emailTo) {
+            super(auditService, act, parameterSet, locale, emailTo);
             this.scenario = scenario;
             this.scenarioName = scenarioName;
             LOGGER.info("Launching audit scenario " + this.scenarioName);
@@ -823,7 +797,7 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
         protected void onActTerminated(Act act, Audit audit) {
             super.onActTerminated(act, audit);
             if (getException() == null) {
-                sendAuditResultEmail(act, getLocale());
+                sendAuditResultEmail(getEmailTo(), act, getLocale());
             }
             LOGGER.info("Audit scenario terminated on " + this.scenarioName);
         }
@@ -854,8 +828,9 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                 Act act,
                 Set<Parameter> parameterSet, 
                 Locale locale,
+                String emailTo,
                 int delay) {
-            super(auditService, act, parameterSet, locale);
+            super(auditService, act, parameterSet, locale, emailTo);
             this.delay = delay;
         }
 
@@ -863,7 +838,7 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
         protected void onActTerminated(Act act, Audit audit) {
             super.onActTerminated(act, audit);
             if (isAuditTerminatedAfterTimeout() && getException() == null) {
-                sendAuditResultEmail(act, getLocale());
+                sendAuditResultEmail(getEmailTo(), act, getLocale());
             }
         }
 
@@ -894,8 +869,9 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                 Act act,
                 Set<Parameter> parameterSet, 
                 Locale locale,
+                String emailTo,
                 int delay) {
-            super(auditService, act, parameterSet, locale, delay);
+            super(auditService, act, parameterSet, locale, emailTo, delay);
             this.siteUrl = siteUrl;
             if (pageUrlList != null) {
                 this.pageUrlList.addAll(pageUrlList);
@@ -936,8 +912,9 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                 Act act,
                 Set<Parameter> parameterSet,
                 Locale locale,
+                String emailTo,
                 int delay) {
-            super(auditService, act, parameterSet, locale, delay);
+            super(auditService, act, parameterSet, locale, emailTo, delay);
             this.pageUrl = pageUrl;
             LOGGER.info("Launching audit Page on " + pageUrl);
         }
@@ -974,8 +951,9 @@ public class TanaguruOrchestratorImpl implements TanaguruOrchestrator {
                 Act act,
                 Set<Parameter> parameterSet, 
                 Locale locale,
+                String emailTo,
                 int delay) {
-            super(auditService, act, parameterSet, locale, delay);
+            super(auditService, act, parameterSet, locale, emailTo, delay);
             if (pageMap != null) {
                 this.pageMap.putAll(pageMap);
             }

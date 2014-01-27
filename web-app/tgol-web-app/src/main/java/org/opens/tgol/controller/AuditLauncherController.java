@@ -22,19 +22,24 @@
 package org.opens.tgol.controller;
 
 import java.util.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.opens.tanaguru.entity.audit.Audit;
-import org.opens.tanaguru.entity.audit.AuditStatus;
 import org.opens.tanaguru.entity.parameterization.Parameter;
 import org.opens.tanaguru.entity.parameterization.ParameterElement;
 import org.opens.tanaguru.entity.service.parameterization.ParameterElementDataService;
 import org.opens.tanaguru.entity.subject.Page;
 import org.opens.tanaguru.entity.subject.Site;
+import org.opens.tanaguru.entity.subject.WebResource;
 import org.opens.tgol.command.AuditSetUpCommand;
+import org.opens.tgol.entity.contract.Act;
+import org.opens.tgol.entity.contract.ActStatus;
 import org.opens.tgol.entity.contract.Contract;
+import org.opens.tgol.entity.contract.Scope;
 import org.opens.tgol.entity.contract.ScopeEnum;
 import org.opens.tgol.entity.option.OptionElement;
+import org.opens.tgol.entity.service.contract.ScopeDataService;
 import org.opens.tgol.entity.service.option.OptionElementDataService;
 import org.opens.tgol.entity.user.User;
 import org.opens.tgol.exception.KrashAuditException;
@@ -216,8 +221,17 @@ public class AuditLauncherController extends AuditDataHandlerController {
         this.optionElementDataService = optionElementDataService;
     }
     
-    public AuditLauncherController() {
+    private Map<ScopeEnum, Scope> scopeMap = new EnumMap<ScopeEnum, Scope>(ScopeEnum.class);
+    private void initializeScopeMap(ScopeDataService ScopeDataService) {
+        for (Scope scope : ScopeDataService.findAll()) {
+            scopeMap.put(scope.getCode(), scope);
+        }
+    }
+    
+    @Autowired
+    public AuditLauncherController(ScopeDataService scopeDataService) {
         super();
+        initializeScopeMap(scopeDataService);
     }
 
     /**
@@ -248,21 +262,26 @@ public class AuditLauncherController extends AuditDataHandlerController {
             }
             String url = getContractDataService().getUrlFromContractOption(contract);
             if (auditScope.equals(ScopeEnum.DOMAIN)) {
-                tanaguruExecutor.auditSite(
+                Act act = createAct(contract, ScopeEnum.GROUPOFPAGES, getClientIpAddress());
+                // TODO: add ACL right to current on that act. 
+                tanaguruExecutor.auditSite(act, 
                     contract,
                     url,
-                    getClientIpAddress(),
                     getUserParamSet(auditSetUpCommand, contract.getId(),-1,url),
-                    locale
+                    locale,
+                    getCurrentUser().getEmail1()
                     );
                 model.addAttribute(TgolKeyStore.TESTED_URL_KEY, url);
             } else if (auditScope.equals(ScopeEnum.SCENARIO)) {
+                Act act = createAct(contract, ScopeEnum.SCENARIO, getClientIpAddress());
+                // TODO : add ACL right to current user on that act
                 tanaguruExecutor.auditScenario(
+                    act,
                     contract,
                     auditSetUpCommand.getScenarioId(),
-                    getClientIpAddress(),
                     getUserParamSet(auditSetUpCommand, contract.getId(),-1,url),
-                    locale
+                    locale,
+                    getCurrentUser().getEmail1()
                     );
                 model.addAttribute(TgolKeyStore.SCENARIO_NAME_KEY, auditSetUpCommand.getScenarioName());
                 model.addAttribute(TgolKeyStore.SCENARIO_ID_KEY, auditSetUpCommand.getScenarioId());
@@ -290,40 +309,42 @@ public class AuditLauncherController extends AuditDataHandlerController {
             final Locale locale,
             final ScopeEnum auditScope,
             Model model) {
-        Audit audit;
+        Act act;
         boolean isPageAudit = true;
         // if the form is correct, we launch the audit
         try {
             if (auditScope.equals(ScopeEnum.FILE)) {
-                audit = launchUploadAudit(contract, auditSetUpCommand, locale);
+                act = launchUploadAudit(contract, auditSetUpCommand, locale);
                 isPageAudit = false;
             } else {
-                audit = launchPageAudit(contract,auditSetUpCommand, locale);
+                act = launchPageAudit(contract,auditSetUpCommand, locale);
             }
         } catch (KrashAuditException kae) {
             return TgolKeyStore.OUPS_VIEW_NAME;
         }
         // if the audit lasted more than expected, we return a "audit in progress"
         // page and send an email when it's ready
-        if (audit == null) {
+        if (act.getStatus() == ActStatus.RUNNING) {
             model.addAttribute(TgolKeyStore.TESTED_URL_KEY, auditSetUpCommand.getUrlList().get(0));
             model.addAttribute(TgolKeyStore.CONTRACT_ID_KEY, contract.getId());
             model.addAttribute(TgolKeyStore.CONTRACT_NAME_KEY, contract.getLabel());
             model.addAttribute(TgolKeyStore.IS_PAGE_AUDIT_KEY, isPageAudit);
-            if (!getEmailSentToUserExclusionList().contains(contract.getUser().getEmail1())) {
+            if (!getEmailSentToUserExclusionList().contains(getCurrentUser().getEmail1())) {
                 model.addAttribute(TgolKeyStore.IS_USER_NOTIFIED_KEY, true);
             }
             return TgolKeyStore.GREEDY_AUDIT_VIEW_NAME;
         }
-        if (audit.getStatus() != AuditStatus.COMPLETED) {
+        Audit audit = act.getAudit();
+        if (act.getStatus() != ActStatus.COMPLETED) {
             return prepareFailedAuditData(audit,model);
         }
-        if (audit.getSubject() instanceof Site) {
+        WebResource auditSubject = audit.getSubject();
+        if (auditSubject instanceof Site) {
             // in case of group of page, we display the list of audited pages
             model.addAttribute(TgolKeyStore.AUDIT_ID_KEY, audit.getId());
             model.addAttribute(TgolKeyStore.STATUS_KEY, HttpStatusCodeFamily.f2xx);
             return TgolKeyStore.PAGE_LIST_XXX_VIEW_REDIRECT_NAME;
-        } else if (audit.getSubject() instanceof Page) {
+        } else if (auditSubject instanceof Page) {
             model.addAttribute(TgolKeyStore.WEBRESOURCE_ID_KEY, audit.getSubject().getId());
             return TgolKeyStore.RESULT_PAGE_VIEW_REDIRECT_NAME;
         }
@@ -338,7 +359,7 @@ public class AuditLauncherController extends AuditDataHandlerController {
      * @param locale
      * @return
      */
-    private Audit launchPageAudit(
+    private Act launchPageAudit(
             final Contract contract,
             final AuditSetUpCommand auditSetUpCommand,
             final Locale locale) {
@@ -352,15 +373,17 @@ public class AuditLauncherController extends AuditDataHandlerController {
                 urlCounter++;
             }
         }
-        Set<Parameter> paramSet = getUserParamSet(auditSetUpCommand, contract.getId(), trueUrl.size(), trueUrl.get(0));
+        String pageUrl = trueUrl.get(0);
+        Set<Parameter> paramSet = getUserParamSet(auditSetUpCommand, contract.getId(), trueUrl.size(), pageUrl);
         if (trueUrl.size() == 1) {
-            LOGGER.debug("Launch " + trueUrl.get(0) + " audit in page mode");
-            return tanaguruExecutor.auditPage(
-                    contract,
-                    trueUrl.get(0),
-                    getClientIpAddress(),
+            LOGGER.debug("Launch " + pageUrl + " audit in page mode");
+            Act act = createAct(contract, ScopeEnum.PAGE, getClientIpAddress());
+            // TODO : give ACL rights to current user on that act.
+            return tanaguruExecutor.auditPage(act, 
+                    pageUrl,
                     paramSet, 
-                    locale);
+                    locale,
+                    getCurrentUser().getEmail1());
         } else if (trueUrl.size() > 1) {
             String[] finalUrlTab = new String[trueUrl.size()];
             for (int i = 0; i < trueUrl.size(); i++) {
@@ -368,16 +391,36 @@ public class AuditLauncherController extends AuditDataHandlerController {
             }
             groupePagesName = extractGroupNameFromUrl(finalUrlTab[0]);
             LOGGER.debug("Launch " + groupePagesName + " audit in group of pages mode");
-            return tanaguruExecutor.auditSite(
+            Act act = createAct(contract, ScopeEnum.DOMAIN, getClientIpAddress());
+            // TODO : give ACL rights to current user on that act
+            return tanaguruExecutor.auditSite( act,
                     contract,
                     groupePagesName,
                     trueUrl,
-                    getClientIpAddress(),
                     paramSet, 
-                    locale);
+                    locale,
+                    getCurrentUser().getEmail1());
         } else {
             return null;
         }
+    }
+    
+    /**
+     * This method initializes an act instance and persists it.
+     * @param contract
+     * @param scope
+     * @return
+     */
+    private Act createAct(Contract contract, ScopeEnum scope, String clientIp) {
+        Date beginDate = new Date();
+        Act act = getActDataService().create();
+        act.setBeginDate(beginDate);
+        act.setContract(contract);
+        act.setStatus(ActStatus.RUNNING);
+        act.setScope(scopeMap.get(scope));
+        act.setClientIp(clientIp);
+        getActDataService().saveOrUpdate(act);
+        return act;
     }
 
     /**
@@ -387,19 +430,26 @@ public class AuditLauncherController extends AuditDataHandlerController {
      * @param locale
      * @return 
      */
-    private Audit launchUploadAudit(
+    private Act launchUploadAudit(
             final Contract contract,
             final AuditSetUpCommand auditSetUpCommand, 
             final Locale locale) {
         
         Map<String, String> fileMap = auditSetUpCommand.getFileMap();
-
+        Act act;
+        if (fileMap.size()>1) {
+            act = createAct(contract, ScopeEnum.GROUPOFFILES, getClientIpAddress());
+        } else {
+            act = createAct(contract, ScopeEnum.FILE, getClientIpAddress());
+        }
+        // TODO : add ACL rights to current user on that Act
         return tanaguruExecutor.auditPageUpload(
+                act,
                 contract,
                 fileMap,
-                getClientIpAddress(),
                 getUserParamSet(auditSetUpCommand, contract.getId(), fileMap.size(), null),
-                locale);
+                locale,
+                getCurrentUser().getEmail1());
     }
 
     /**
