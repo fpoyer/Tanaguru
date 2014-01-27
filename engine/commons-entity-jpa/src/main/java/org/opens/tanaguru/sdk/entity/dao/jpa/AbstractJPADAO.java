@@ -24,10 +24,13 @@ package org.opens.tanaguru.sdk.entity.dao.jpa;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+
 import org.opens.tanaguru.sdk.entity.Entity;
 import org.opens.tanaguru.sdk.entity.dao.GenericDAO;
 
@@ -97,6 +100,7 @@ public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<E> findAll() {
         Query query = entityManager.createQuery("SELECT o FROM " + getEntityClassName() + " o");
