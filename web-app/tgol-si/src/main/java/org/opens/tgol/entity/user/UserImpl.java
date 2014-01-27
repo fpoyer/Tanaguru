@@ -24,14 +24,9 @@ package org.opens.tgol.entity.user;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.persistence.*;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.opens.tgol.entity.contract.Contract;
-import org.opens.tgol.entity.contract.ContractImpl;
 import org.opens.tgol.entity.option.OptionElement;
 import org.opens.tgol.entity.option.OptionElementImpl;
 
@@ -87,9 +82,6 @@ public class UserImpl implements User, Serializable {
     @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name = "ROLE_Id_Role")
     private RoleImpl role;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private Collection<ContractImpl> contractSet = new LinkedHashSet<ContractImpl>();
 
     @ManyToMany
         @JoinTable(name = "TGSI_USER_OPTION_ELEMENT", joinColumns =
@@ -215,29 +207,6 @@ public class UserImpl implements User, Serializable {
     @Override
     public void setRole(Role role) {
         this.role = (RoleImpl)role;
-    }
-
-    @Override
-    public void addContract(Contract contract) {
-        contract.setUser(this);
-        this.contractSet.add((ContractImpl)contract);
-    }
-
-    @Override
-    public void addAllContracts(Collection<Contract> contractSet) {
-        for (Contract contract : contractSet) {
-            contract.setUser(this);
-            if (contract instanceof ContractImpl) {
-                this.contractSet.add((ContractImpl)contract);
-            }
-        }
-    }
-
-    @Override
-    @XmlElementWrapper
-    @XmlElementRef(type = org.opens.tgol.entity.contract.ContractImpl.class)
-    public Collection<Contract> getContractSet() {
-        return (Collection)contractSet;
     }
 
     @Override

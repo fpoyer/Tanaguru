@@ -23,13 +23,11 @@ package org.opens.tgol.entity.contract;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.Set;
 import org.opens.tanaguru.sdk.entity.Entity;
 import org.opens.tgol.entity.functionality.Functionality;
 import org.opens.tgol.entity.option.OptionElement;
 import org.opens.tgol.entity.referential.Referential;
 import org.opens.tgol.entity.scenario.Scenario;
-import org.opens.tgol.entity.user.User;
 
 /**
  *
@@ -101,19 +99,6 @@ public interface Contract extends Entity {
      * @param price
      */
     void setPrice(Float price);
-
-    /**
-     *
-     * @return
-     *      the user owning the contract
-     */
-    User getUser();
-
-    /**
-     *
-     * @param user
-     */
-    void setUser(User user);
 
     /**
      *

@@ -33,8 +33,6 @@ import org.opens.tgol.entity.referential.Referential;
 import org.opens.tgol.entity.referential.ReferentialImpl;
 import org.opens.tgol.entity.scenario.Scenario;
 import org.opens.tgol.entity.scenario.ScenarioImpl;
-import org.opens.tgol.entity.user.User;
-import org.opens.tgol.entity.user.UserImpl;
 
 /**
  *
@@ -69,10 +67,6 @@ public class ContractImpl implements Contract, Serializable {
 
     @Column(name = "Price")
     private Float price;
-
-    @ManyToOne
-    @JoinColumn(name = "USER_Id_User")
-    private UserImpl user;
 
     @OneToMany(mappedBy = "contract")
     private Set<ActImpl> actSet = new LinkedHashSet<ActImpl>();
@@ -182,15 +176,6 @@ public class ContractImpl implements Contract, Serializable {
         this.price = price;
     }
 
-    @Override
-    public User getUser() {
-        return user;
-    }
-
-    @Override
-    public void setUser(User user) {
-        this.user = (UserImpl)user;
-    }
 
     @Override
     public Collection<Act> getActSet() {
