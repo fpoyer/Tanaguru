@@ -49,7 +49,7 @@ public class ContractDAOImpl extends AbstractJPADAO<Contract, Long>
     @SuppressWarnings("unchecked")
     public Collection<Contract> findAllContractsByUser(User user) {
         Query query = entityManager.createQuery("SELECT distinct(c) FROM "
-                + getEntityClass().getName() + " c"
+                + getEntityClassName() + " c"
                 + " LEFT JOIN FETCH c.optionElementSet o"
                 + " LEFT JOIN FETCH c.functionalitySet f"
                 + " LEFT JOIN FETCH c.referentialSet f"
@@ -63,7 +63,7 @@ public class ContractDAOImpl extends AbstractJPADAO<Contract, Long>
     public Contract read(Long id) {
         try {
             Query query = entityManager.createQuery("SELECT c FROM "
-                    + getEntityClass().getName() + " c"
+                    + getEntityClassName() + " c"
                     + " LEFT JOIN FETCH c.optionElementSet o"
                     + " LEFT JOIN FETCH c.functionalitySet f"
                     + " LEFT JOIN FETCH c.referentialSet f"
