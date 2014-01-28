@@ -21,6 +21,8 @@
  */
 package org.opens.tgol.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Calendar;
 import java.util.Collection;
 import org.apache.log4j.Logger;
@@ -33,6 +35,14 @@ import org.opens.tgol.presentation.factory.DetailedContractInfoFactory;
 import org.opens.tgol.security.userdetails.TgolUserDetails;
 import org.opens.tgol.util.TgolKeyStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.acls.domain.GrantedAuthoritySid;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.Acl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.Permission;
+import org.springframework.security.acls.model.Sid;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
@@ -70,6 +80,17 @@ public abstract class AbstractController {
         this.contractDataService = contractDataService;
     }
 
+    private MutableAclService aclService;
+    
+    @Autowired
+    public void setAclService(MutableAclService aclService) {
+        this.aclService = aclService;
+    }
+    
+    public MutableAclService getAclService() {
+        return this.aclService;
+    }
+    
     public AbstractController() {}
 
     /**
@@ -203,5 +224,63 @@ public abstract class AbstractController {
                 isContractExpired(contract));
         return TgolKeyStore.CONTRACT_VIEW_NAME;
     }
+    
+    /**
+     * @return a list of Security IDs representing the current authenticated user and his/her granted authorities.
+     */
+    protected List<Sid> getCurrentSid() {
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        List<Sid> sids = new ArrayList<Sid>(auth.getAuthorities().size() + 1);
+        // Username
+        Sid principalSid = new PrincipalSid(auth);
+        sids.add(principalSid);
+        // Granted Authorities
+        for (GrantedAuthority grantedAuthority : auth.getAuthorities()) {
+            sids.add(new GrantedAuthoritySid(grantedAuthority));
+        }
+        return sids;
+    }
+    
+    /**
+     * Use this method to test if the user (and his/her granted authorities)
+     * identified by the list of Security IDs has ANY of the passed permissions
+     * on the passed domain object
+     * 
+     * @param sids
+     *            list of SIDs of the user
+     * @param permissions
+     *            requested permissions
+     * @param onObject
+     *            domain object the permissions are requested upon.
+     * @return true if ACL are found that grant any of the requested permissions
+     *         to given SIDs, false otherwise.
+     */
+    protected boolean isHoldingPermissions(List<Sid> sids,
+            List<Permission> permissions, Object onObject) {
+        ObjectIdentityImpl objectIdentity = new ObjectIdentityImpl(onObject);
+        return isHoldingPermissions(sids, permissions, objectIdentity);
+    }
 
+    /**
+     * Use this method to test if the user (and his/her granted authorities)
+     * identified by the list of Security IDs has ANY of the passed permissions
+     * on the passed object identity
+     * 
+     * @param sids
+     *            list of SIDs of the user
+     * @param permissions
+     *            requested permissions
+     * @param objectIdentity
+     *            object identity referring to the domain object the permissions
+     *            are requested upon.
+     * @return true if ACL are found that grant any of the requested permissions
+     *         to given SIDs, false otherwise.
+     */
+    protected boolean isHoldingPermissions(List<Sid> sids,
+            List<Permission> permissions, ObjectIdentityImpl objectIdentity) {
+        Acl acl = aclService.readAclById(objectIdentity, sids);
+
+        return (acl != null && acl.isGranted(permissions, sids, false));
+    }
 }

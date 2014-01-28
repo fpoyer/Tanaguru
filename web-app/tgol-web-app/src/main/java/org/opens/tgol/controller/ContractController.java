@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.opens.tgol.action.voter.ActionHandler;
 import org.opens.tgol.entity.contract.Contract;
 import org.opens.tgol.entity.functionality.Functionality;
 import org.opens.tgol.exception.ForbiddenPageException;
@@ -35,6 +34,9 @@ import org.opens.tgol.exception.ForbiddenUserException;
 import org.opens.tgol.util.TgolKeyStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.model.Permission;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -99,10 +101,16 @@ public class ContractController extends AbstractController {
         } catch (NumberFormatException nfe) {
             throw new ForbiddenPageException(getCurrentUser());
         }
-        if (!isUserOwnedContract(contractIdValue)) {
+        if (!currentUserCanRead(contractIdValue)) {
             throw new ForbiddenUserException(getCurrentUser());
         }
         return displayContractPage(request, model, contractIdValue);
+    }
+    
+    private boolean currentUserCanRead(Long contractId) {
+        List<Permission> permissions = new ArrayList<Permission>(1);
+        permissions.add(BasePermission.READ);
+        return isHoldingPermissions(getCurrentSid(), permissions, new ObjectIdentityImpl(Contract.class, contractId));
     }
 
     /**
@@ -138,21 +146,6 @@ public class ContractController extends AbstractController {
     private boolean isContractHasFunctionalityAllowingTrend(Contract contract) {
         for (Functionality functionality : contract.getFunctionalitySet()) {
             if (authorizedFunctionalityForTrend.contains(functionality.getCode())) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-     /**
-     * This methods checks whether the given contract belongs to the authenticated
-     * user of the current session
-     * @param contractId
-     * @return
-     */
-    private boolean isUserOwnedContract(Long contractId){
-        for (Contract contract : getCurrentUser().getContractSet()) {
-            if (contract.getId().equals(contractId)) {
                 return true;
             }
         }

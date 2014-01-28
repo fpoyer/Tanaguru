@@ -44,14 +44,8 @@ import org.opens.tgol.util.TgolKeyStore;
 import org.opens.tgol.validator.AuditSetUpFormValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.Acl;
-import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -175,17 +169,6 @@ public abstract class AbstractAuditSetUpController extends AuditDataHandlerContr
     @Autowired
     public void setAuditLauncherController(AuditLauncherController auditLauncherController) {
         this.auditLauncherController = auditLauncherController;
-    }
-    
-    private MutableAclService aclService;
-    
-    @Autowired
-    public void setAclService(MutableAclService aclService) {
-        this.aclService = aclService;
-    }
-    
-    public MutableAclService getAclService() {
-        return this.aclService;
     }
     
     public AbstractAuditSetUpController() {
@@ -434,20 +417,11 @@ public abstract class AbstractAuditSetUpController extends AuditDataHandlerContr
         }
         User user = getCurrentUser();
         // Resolve Sid for current user
-        Authentication auth = SecurityContextHolder.getContext()
-                .getAuthentication();
-        Sid sid = new PrincipalSid(auth);
-        List<Sid> sids = new ArrayList<Sid>(1);
-        sids.add(sid);
-        // Read ACLs for this Contract/User combination
-        Acl acl = aclService
-                .readAclById(new ObjectIdentityImpl(contract), sids);
+        List<Sid> sids = getCurrentSid();
         List<Permission> permissions = new ArrayList<Permission>(1);
         // XXX READ permission? Or WRITE? or CREATE?
         permissions.add(BasePermission.READ);
-        // If user have no ACL for this Contract or ACL do not grant the
-        // required permission, deny access.
-        if (acl == null || !acl.isGranted(permissions, sids, false)) {
+        if (!isHoldingPermissions(sids, permissions, contract)) {
             throw new ForbiddenPageException(user);
         }
         Collection<String> functionalitySet = getAuthorisedFunctionalityCodeFromContract(contract);
@@ -456,7 +430,7 @@ public abstract class AbstractAuditSetUpController extends AuditDataHandlerContr
         }
         return true;
     }
-    
+  
     /**
      * This method prepares the data to display in the set-up form.
      *

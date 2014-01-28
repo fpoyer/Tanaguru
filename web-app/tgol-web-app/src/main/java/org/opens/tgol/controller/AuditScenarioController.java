@@ -46,6 +46,9 @@ import org.opens.tgol.validator.AddScenarioFormValidator;
 import org.opens.tgol.validator.AuditSetUpFormValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.model.Permission;
+import org.springframework.security.acls.model.Sid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -152,7 +155,7 @@ public class AuditScenarioController extends AbstractAuditSetUpController {
             @RequestParam(TgolKeyStore.SCENARIO_ID_KEY) String scenarioId,
             HttpServletResponse response) {
         Contract contract = getContractDataService().read(Long.valueOf(contractId));
-        if (contract.getUser().getId().equals(getCurrentUser().getId())) {
+        if (currentUserCanRead(contract)) {
             try {
                 for (Scenario scenario : contract.getScenarioSet()) {
                     if (scenario.getId().equals(Long.valueOf(scenarioId))) {
@@ -176,6 +179,30 @@ public class AuditScenarioController extends AbstractAuditSetUpController {
         }
     }
     
+    private boolean currentUserCanRead(Contract contract) {
+        if (contract == null) {
+            return false;
+        }
+        // Resolve Sid for current user
+        List<Sid> sids = getCurrentSid();
+        
+        List<Permission> permissions = new ArrayList<Permission>(1);
+        permissions.add(BasePermission.READ);
+        
+        // Read ACLs for this Contract/User combination
+        return isHoldingPermissions(sids, permissions, contract);
+    }
+
+    private boolean currentUserCanDelete(Contract contract) {
+        if (contract == null) {
+            return false;
+        }
+        List<Sid> sids = getCurrentSid();
+        List<Permission> permissions = new ArrayList<Permission>(1);
+        permissions.add(BasePermission.DELETE);
+        return isHoldingPermissions(sids, permissions, contract);
+    }
+    
     @RequestMapping(value = TgolKeyStore.DELETE_SCENARIO_URL_CONTRACT_URL, method = RequestMethod.GET)
     @Secured({TgolKeyStore.ROLE_USER_KEY, TgolKeyStore.ROLE_ADMIN_KEY})
     public String deleteScenarioFile(
@@ -185,7 +212,7 @@ public class AuditScenarioController extends AbstractAuditSetUpController {
             HttpServletResponse response,
             Model model) {
         Contract contract = getContractDataService().read(Long.valueOf(contractId));
-        if (contract.getUser().getId().equals(getCurrentUser().getId())) {
+        if (currentUserCanDelete(contract)) {
             for (Scenario scenario : contract.getScenarioSet()) {
                 if (scenario.getId().equals(Long.valueOf(scenarioId))) {
                     deleteScenario(scenario, contract);

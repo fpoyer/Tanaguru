@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import javax.persistence.NoResultException;
 import javax.servlet.http.HttpServletRequest;
+
 import org.displaytag.pagination.PaginatedList;
 import org.opens.tanaguru.entity.audit.Audit;
 import org.opens.tanaguru.entity.audit.AuditStatus;
@@ -51,14 +52,8 @@ import org.opens.tgol.util.HttpStatusCodeFamily;
 import org.opens.tgol.util.TgolKeyStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.Acl;
-import org.springframework.security.acls.model.AclService;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.ServletRequestBindingException;
@@ -244,13 +239,6 @@ public abstract class AuditDataHandlerController extends AbstractController {
     private static final String INVALID_TEST_VALUE_CHECKER_REGEXP = "\\d\\d?\\.\\d\\d?\\.\\d\\d?";
     private Pattern invalidTestValueCheckerPattern = Pattern.compile(INVALID_TEST_VALUE_CHECKER_REGEXP);
     
-    private AclService aclService;
-    
-    @Autowired
-    public void setAclService(AclService aclService) {
-        this.aclService = aclService;
-    }
-    
     public AuditDataHandlerController() {}
 
     /**
@@ -294,23 +282,15 @@ public abstract class AuditDataHandlerController extends AbstractController {
             throw new ForbiddenPageException();
         }
         // Resolve Sid for current user
-        Authentication auth = SecurityContextHolder.getContext()
-                .getAuthentication();
-        Sid sid = new PrincipalSid(auth);
-        List<Sid> sids = new ArrayList<Sid>(1);
-        sids.add(sid);
-        // Read ACLs for this Contract/User combination
-        Acl acl = aclService
-                .readAclById(new ObjectIdentityImpl(act), sids);
+        List<Sid> sids = getCurrentSid();
         List<Permission> permissions = new ArrayList<Permission>(1);
         permissions.add(BasePermission.READ);
-        // If user have no ACL for this Contract or ACL do not grant the
-        // required permission, deny access.
-        if (acl == null || !acl.isGranted(permissions, sids, false)) {
+        if (!isHoldingPermissions(sids, permissions, act)) {
             throw new ForbiddenUserException();
         }
         return true;
     }
+    
         
     /**
      * 
