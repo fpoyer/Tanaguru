@@ -121,17 +121,22 @@ public abstract class AbstractController {
     
     /**
      * This method determines whether the authenticated user of the current session
-     * is an admin guest
+     * is an admin
      * @return
-     *      true if the the authenticated user of the current session is a
-     *      guest, otherwise false.
+     *      true if the the authenticated user of the current session is an
+     *      admin, otherwise false.
      */
     protected boolean isAdminUser() {
-        Collection<? extends GrantedAuthority> authorities =
-                SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-        if (authorities != null && authorities.size() == 1
-                && authorities.iterator().next().getAuthority().equalsIgnoreCase(TgolKeyStore.ROLE_ADMIN_KEY)) {
-            return true;
+        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder
+                .getContext().getAuthentication().getAuthorities();
+        if (authorities == null || authorities.size() == 0) {
+            return false;
+        }
+        for (GrantedAuthority authority : authorities) {
+            if (TgolKeyStore.ROLE_ADMIN_KEY.equalsIgnoreCase(authority
+                    .getAuthority())) {
+                return true;
+            }
         }
         return false;
     }
