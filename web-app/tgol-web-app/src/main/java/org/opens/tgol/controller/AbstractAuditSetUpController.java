@@ -253,8 +253,9 @@ public abstract class AbstractAuditSetUpController extends AuditDataHandlerContr
                 case PAGE:
                 case GROUPOFPAGES:
                 default:
+                    boolean userIsGuest = getCurrentUser().getEmail1().equalsIgnoreCase("guest");
                     asuc = AuditSetUpCommandFactory.getInstance().
-                        getPageAuditSetUpCommand(contract,refAndLevelFormFieldList, optionFormFieldMap);
+                        getPageAuditSetUpCommand(contract, userIsGuest, refAndLevelFormFieldList, optionFormFieldMap);
             }
             model.addAttribute(TgolKeyStore.AUDIT_SET_UP_COMMAND_KEY, asuc);
             model.addAttribute(TgolKeyStore.DEFAULT_PARAM_SET_KEY,

@@ -34,7 +34,6 @@ import org.opens.tgol.entity.decorator.tanaguru.parameterization.ParameterDataSe
 import org.opens.tgol.entity.scenario.Scenario;
 import org.opens.tgol.entity.service.contract.ContractDataService;
 import org.opens.tgol.entity.service.scenario.ScenarioDataService;
-import org.opens.tgol.entity.user.User;
 import org.opens.tgol.form.NumericalFormField;
 import org.opens.tgol.form.SelectFormField;
 import org.opens.tgol.form.parameterization.AuditSetUpFormField;
@@ -145,11 +144,12 @@ public final class AuditSetUpCommandFactory {
      */
     public AuditSetUpCommand getPageAuditSetUpCommand(
             Contract contract,
+            boolean userIsGuest,
             List<SelectFormField> levelFormFieldList,
             Map<String, List<AuditSetUpFormField>> optionalFormFieldMap) {
         AuditSetUpCommand pageAuditSetUpCommand = new AuditSetUpCommand();
         pageAuditSetUpCommand.setScope(ScopeEnum.PAGE);
-        pageAuditSetUpCommand.setUrlList(getGroupOfPagesUrl(contract));
+        pageAuditSetUpCommand.setUrlList(getGroupOfPagesUrl(contract, userIsGuest));
         setUpAuditSetUpCommand(
                 pageAuditSetUpCommand,
                 contract,
@@ -194,7 +194,8 @@ public final class AuditSetUpCommandFactory {
             Map<String, List<AuditSetUpFormField>> optionalFormFieldMap) {
         AuditSetUpCommand uploadAuditSetUpCommand = new AuditSetUpCommand();
         uploadAuditSetUpCommand.setScope(ScopeEnum.FILE);
-        uploadAuditSetUpCommand.setFileInputList(getGroupOfFileInput(contract));
+        uploadAuditSetUpCommand
+                .setFileInputList(new CommonsMultipartFile[AuditSetUpCommand.DEFAULT_LIST_SIZE]);
         setUpAuditSetUpCommand(
                 uploadAuditSetUpCommand,
                 contract,
@@ -318,16 +319,6 @@ public final class AuditSetUpCommandFactory {
     }
 
     /**
-     *
-     * @param contract
-     * @return
-     */
-    private CommonsMultipartFile[] getGroupOfFileInput(Contract contract) {
-        CommonsMultipartFile[] groupOfFileInput = new CommonsMultipartFile[AuditSetUpCommand.DEFAULT_LIST_SIZE];
-        return (contract.getUser() == null) ? null : groupOfFileInput;
-    }
-
-    /**
      * This methods prepares the String table passed to the jsp that handles the
      * URL filled-in by the user. Depending the status of the user
      * (authenticated or guest), the table is pre-populated.
@@ -335,17 +326,14 @@ public final class AuditSetUpCommandFactory {
      * @param contractId
      * @return
      */
-    private List<String> getGroupOfPagesUrl(Contract contract) {
-        User user = contract.getUser();
-        /* 
+    private List<String> getGroupOfPagesUrl(Contract contract, boolean userIsGuest) {
+       /* 
          * WARNING hard-coded exception for guest user 
          * @TODO : do it better
          */
         int nbOfPages = AuditSetUpCommand.DEFAULT_LIST_SIZE;
         List<String> groupOfPagesUrl = new LinkedList<String>();
-        if (user == null) {
-            return null;
-        } else if (user.getEmail1().equalsIgnoreCase("guest")) {
+        if (userIsGuest) {
             nbOfPages = 1;
         }
         for (int i = 0; i < nbOfPages; i++) {
