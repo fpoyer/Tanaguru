@@ -47,7 +47,7 @@ import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.Acl;
-import org.springframework.security.acls.model.AclService;
+import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.security.core.Authentication;
@@ -177,11 +177,15 @@ public abstract class AbstractAuditSetUpController extends AuditDataHandlerContr
         this.auditLauncherController = auditLauncherController;
     }
     
-    private AclService aclService;
+    private MutableAclService aclService;
     
     @Autowired
-    public void setAclService(AclService aclService) {
+    public void setAclService(MutableAclService aclService) {
         this.aclService = aclService;
+    }
+    
+    public MutableAclService getAclService() {
+        return this.aclService;
     }
     
     public AbstractAuditSetUpController() {
