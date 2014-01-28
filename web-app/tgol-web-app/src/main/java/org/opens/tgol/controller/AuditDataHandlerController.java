@@ -41,7 +41,6 @@ import org.opens.tgol.entity.contract.Contract;
 import org.opens.tgol.entity.decorator.tanaguru.parameterization.ParameterDataServiceDecorator;
 import org.opens.tgol.entity.decorator.tanaguru.subject.WebResourceDataServiceDecorator;
 import org.opens.tgol.entity.service.contract.ActDataService;
-import org.opens.tgol.entity.user.User;
 import org.opens.tgol.exception.ForbiddenPageException;
 import org.opens.tgol.exception.ForbiddenUserException;
 import org.opens.tgol.exception.OrphanWebResourceException;
@@ -51,6 +50,15 @@ import org.opens.tgol.report.pagination.factory.TgolPaginatedListFactory;
 import org.opens.tgol.util.HttpStatusCodeFamily;
 import org.opens.tgol.util.TgolKeyStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.Acl;
+import org.springframework.security.acls.model.AclService;
+import org.springframework.security.acls.model.Permission;
+import org.springframework.security.acls.model.Sid;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.ServletRequestBindingException;
@@ -236,6 +244,13 @@ public abstract class AuditDataHandlerController extends AbstractController {
     private static final String INVALID_TEST_VALUE_CHECKER_REGEXP = "\\d\\d?\\.\\d\\d?\\.\\d\\d?";
     private Pattern invalidTestValueCheckerPattern = Pattern.compile(INVALID_TEST_VALUE_CHECKER_REGEXP);
     
+    private AclService aclService;
+    
+    @Autowired
+    public void setAclService(AclService aclService) {
+        this.aclService = aclService;
+    }
+    
     public AuditDataHandlerController() {}
 
     /**
@@ -267,24 +282,34 @@ public abstract class AuditDataHandlerController extends AbstractController {
 
     /**
      * This methods checks whether the current user is allowed to display the
-     * audit result of a given audit. To do so, we verify that the act
+     * audit result of a given act. To do so, we verify that the act
      * associated with the audit belongs to the current user and
      * that the current contract is not expired
      * @param act
      * @return
      *      true if the user is allowed to display the result, false otherwise.
      */
-        protected boolean isUserAllowedToDisplayResult(Audit audit) {
-        if (audit == null) {
+    protected boolean isUserAllowedToDisplayResult(Act act) {
+        if (act == null) {
             throw new ForbiddenPageException();
         }
-        User user = getCurrentUser();
-        Contract contract = getActDataService().getActFromAudit(audit).getContract();
-        if (isAdminUser() || (!isContractExpired(contract) && user.getId().compareTo(
-                contract.getUser().getId()) == 0)) {
-            return true;
+        // Resolve Sid for current user
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        Sid sid = new PrincipalSid(auth);
+        List<Sid> sids = new ArrayList<Sid>(1);
+        sids.add(sid);
+        // Read ACLs for this Contract/User combination
+        Acl acl = aclService
+                .readAclById(new ObjectIdentityImpl(act), sids);
+        List<Permission> permissions = new ArrayList<Permission>(1);
+        permissions.add(BasePermission.READ);
+        // If user have no ACL for this Contract or ACL do not grant the
+        // required permission, deny access.
+        if (acl == null || !acl.isGranted(permissions, sids, false)) {
+            throw new ForbiddenUserException();
         }
-        throw new ForbiddenUserException();
+        return true;
     }
         
     /**

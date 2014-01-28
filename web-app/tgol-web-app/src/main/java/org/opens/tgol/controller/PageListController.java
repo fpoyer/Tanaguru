@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.opens.tanaguru.entity.audit.Audit;
 import org.opens.tanaguru.entity.subject.Page;
+import org.opens.tgol.entity.contract.Act;
 import org.opens.tgol.entity.contract.Contract;
 import org.opens.tgol.exception.AuditParameterMissingException;
 import org.opens.tgol.exception.ForbiddenPageException;
@@ -80,7 +81,8 @@ public class PageListController extends AuditDataHandlerController{
             throw new ForbiddenPageException(e);
         }
 
-        if (isUserAllowedToDisplayResult(audit)) {
+        Act act = getActDataService().getActFromAudit(audit);
+        if (isUserAllowedToDisplayResult(act)) {
             return pageLinkDispatcher(request, audit, model);
         } else {
             // this block can never be reached. the "isUserAllowedToDisplayResult"

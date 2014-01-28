@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.opens.tanaguru.entity.audit.Audit;
 import org.opens.tanaguru.entity.audit.AuditStatus;
 import org.opens.tanaguru.entity.audit.SSP;
@@ -76,7 +75,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class AuditResultController extends AuditDataHandlerController {
 
-    private static final Logger LOGGER = Logger.getLogger(AuditResultController.class);
     private static final String CRITERION_RESULT_PAGE_KEY="criterion-result";
     private static final String REFERER_HEADER_KEY="referer";
 
@@ -267,7 +265,8 @@ public class AuditResultController extends AuditDataHandlerController {
             throw new ForbiddenPageException();
         }
         Audit audit = getAuditFromWebResource(webResource);
-        if (isUserAllowedToDisplayResult(audit)) {
+        Act act = getActDataService().getActFromAudit(audit);
+        if (isUserAllowedToDisplayResult(act)) {
             Page page = (Page)webResource;
 
             SSP ssp =getContentDataService().findSSP(page, page.getURL());
@@ -308,7 +307,8 @@ public class AuditResultController extends AuditDataHandlerController {
             throw new ForbiddenPageException();
         }
         Audit audit = getAuditFromWebResource(webResource);
-        if (isUserAllowedToDisplayResult(audit))  {
+        Act act = getActDataService().getActFromAudit(audit);
+        if (isUserAllowedToDisplayResult(act))  {
                 Contract contract = retrieveContractFromAudit(audit);
                 // Attributes for breadcrumb
                 model.addAttribute(TgolKeyStore.CONTRACT_ID_KEY, contract.getId());
@@ -354,7 +354,8 @@ public class AuditResultController extends AuditDataHandlerController {
             throw new ForbiddenPageException();
         }
         Audit audit = getAuditFromWebResource(webResource);
-        if (isUserAllowedToDisplayResult(audit))  {
+        Act act = getActDataService().getActFromAudit(audit);
+        if (isUserAllowedToDisplayResult(act))  {
                 Contract contract = retrieveContractFromAudit(audit);
                 // Attributes for breadcrumb
                 model.addAttribute(TgolKeyStore.CONTRACT_ID_KEY, contract.getId());
@@ -405,7 +406,8 @@ public class AuditResultController extends AuditDataHandlerController {
         Audit audit = getAuditFromWebResource(webResource);
         // If the Id given in argument correspond to a webResource,
             // data are retrieved to be prepared and displayed
-        if (isUserAllowedToDisplayResult(audit)) {
+        Act act = this.getActDataService().getActFromAudit(audit);
+        if (isUserAllowedToDisplayResult(act)) {
             this.callGc(webResource);
 
             String displayScope = computeDisplayScope(request, auditResultSortCommand);

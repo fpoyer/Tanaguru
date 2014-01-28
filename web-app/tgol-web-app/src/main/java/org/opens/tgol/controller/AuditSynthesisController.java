@@ -24,12 +24,12 @@ package org.opens.tgol.controller;
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.log4j.Logger;
 import org.opens.tanaguru.entity.audit.Audit;
 import org.opens.tanaguru.entity.audit.TestSolution;
 import org.opens.tanaguru.entity.reference.Theme;
 import org.opens.tanaguru.entity.subject.Page;
 import org.opens.tanaguru.entity.subject.Site;
+import org.opens.tgol.entity.contract.Act;
 import org.opens.tgol.entity.contract.Contract;
 import org.opens.tgol.exception.ForbiddenPageException;
 import org.opens.tgol.exception.ForbiddenUserException;
@@ -51,8 +51,6 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @Controller
 public class AuditSynthesisController extends AuditDataHandlerController {
-
-    private static final Logger LOGGER = Logger.getLogger(AuditSynthesisController.class);
 
     private int nbOfDisplayedFailedTest = 5;
     public void setNbOfDisplayedFailedTest(int nbOfDisplayedFailedTest) {
@@ -105,7 +103,8 @@ public class AuditSynthesisController extends AuditDataHandlerController {
             throw new ForbiddenPageException();
         }
         Audit audit = getAuditDataService().read(aId);
-        if (isUserAllowedToDisplayResult(audit)) {
+        Act act = getActDataService().getActFromAudit(audit);
+        if (isUserAllowedToDisplayResult(act)) {
             if (isAuthorizedScopeForSynthesis(audit)) {
                 Contract contract = retrieveContractFromAudit(audit);
                 model.addAttribute(
@@ -141,7 +140,6 @@ public class AuditSynthesisController extends AuditDataHandlerController {
 
         Map<Theme, ResultCounter> top5SortedThemeMap =
                 new LinkedHashMap<Theme, ResultCounter>();
-        @SuppressWarnings("unchecked")
         Collection<FailedThemeInfo> tfiCollection =
                 (Collection<FailedThemeInfo>) getWebResourceDataService().
                 getResultCountByResultTypeAndTheme(site, audit, TestSolution.FAILED, nbOfDisplayedFailedTest);

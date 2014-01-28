@@ -32,6 +32,7 @@ import org.apache.log4j.Logger;
 import org.opens.tanaguru.entity.reference.Scope;
 import org.opens.tanaguru.entity.subject.Page;
 import org.opens.tanaguru.entity.subject.WebResource;
+import org.opens.tgol.entity.contract.Act;
 import org.opens.tgol.exception.ForbiddenPageException;
 import org.opens.tgol.presentation.data.AuditStatistics;
 import org.opens.tgol.presentation.data.TestResult;
@@ -100,7 +101,8 @@ public class AuditExportResultController extends AuditDataHandlerController {
 
         WebResource webResource = getWebResourceDataService().ligthRead(webResourceIdValue);
         // if the id of the webresource corresponds to a Site webResource
-        if (isUserAllowedToDisplayResult(getAuditFromWebResource(webResource))) {
+        Act act = getActDataService().getActFromAudit(getAuditFromWebResource(webResource));
+        if (isUserAllowedToDisplayResult(act)) {
             // If the Id given in argument correspond to a webResource,
             // data are retrieved to be prepared and displayed
             try {
