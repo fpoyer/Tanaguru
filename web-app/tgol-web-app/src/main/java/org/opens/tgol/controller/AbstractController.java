@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
 import java.util.Collection;
+
 import org.apache.log4j.Logger;
 import org.opens.tgol.entity.contract.Contract;
 import org.opens.tgol.entity.service.contract.ContractDataService;
@@ -35,6 +36,8 @@ import org.opens.tgol.presentation.factory.DetailedContractInfoFactory;
 import org.opens.tgol.security.userdetails.TgolUserDetails;
 import org.opens.tgol.util.TgolKeyStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
@@ -81,16 +84,16 @@ public abstract class AbstractController {
         this.contractDataService = contractDataService;
     }
 
+    @Autowired
     private MutableAclService aclService;
     
-    @Autowired
-    public void setAclService(MutableAclService aclService) {
-        this.aclService = aclService;
-    }
-    
-    public MutableAclService getAclService() {
+    protected MutableAclService getAclService() {
         return this.aclService;
     }
+    
+    @Autowired
+    @Qualifier(value="roleHierarchy")
+    private RoleHierarchy roleHierarchy;
     
     public AbstractController() {}
 
@@ -236,9 +239,9 @@ public abstract class AbstractController {
         // Username
         Sid principalSid = new PrincipalSid(auth);
         sids.add(principalSid);
-        // TODO: roleHierarchy should be used here...
         // Granted Authorities
-        for (GrantedAuthority grantedAuthority : auth.getAuthorities()) {
+        Collection<? extends GrantedAuthority> authorities = roleHierarchy.getReachableGrantedAuthorities(auth.getAuthorities());
+        for (GrantedAuthority grantedAuthority : authorities) {
             sids.add(new GrantedAuthoritySid(grantedAuthority));
         }
         return sids;
