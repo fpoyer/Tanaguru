@@ -137,7 +137,8 @@ public class HomeControllerTest extends TestCase {
 
         mockUser = createMock(User.class);
         
-        expect(mockUser.getContractSet()).andReturn(contractSet).once();
+        // TODO : replace with another test?
+        //expect(mockUser.getContractSet()).andReturn(contractSet).once();
         expect(mockUser.getEmail1()).andReturn("test1@test.com").once();
         expect(mockUser.getId()).andReturn(Long.valueOf(1)).once();
         expect(mockUser.getFirstName()).andReturn("").once();

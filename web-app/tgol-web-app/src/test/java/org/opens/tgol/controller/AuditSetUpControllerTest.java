@@ -355,10 +355,10 @@ public class AuditSetUpControllerTest extends TestCase {
             int getUrlFromContractOption) {
         
         mockContract = createMock(Contract.class);
-
-        if (getContractUserCount > 0) {
-            expect(mockContract.getUser()).andReturn(mockUser).times(getContractUserCount);
-        }
+        // TODO Replace by another test??
+        // if (getContractUserCount > 0) {
+        // expect(mockContract.getUser()).andReturn(mockUser).times(getContractUserCount);
+        // }
         if (getContractIdCount > 0) {
             expect(mockContract.getId()).andReturn(Long.valueOf(getContractIdValue)).times(getContractIdCount);
         }

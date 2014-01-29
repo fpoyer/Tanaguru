@@ -461,10 +461,10 @@ public class PageListControllerTest extends TestCase {
         expect(mockContract.getEndDate())
                 .andReturn(calendar.getTime())
                     .anyTimes();
-        
-        expect(mockContract.getUser())
-                .andReturn(mockUser)
-                    .anyTimes();
+        // TODO Replace by another test??
+        // expect(mockContract.getUser())
+        // .andReturn(mockUser)
+        // .anyTimes();
         
         expect(mockContract.getLabel())
                 .andReturn("CONTRACT LABEL")

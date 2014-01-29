@@ -216,9 +216,10 @@ public class ContractControllerTest extends TestCase {
             expect(mockContract.getOptionElementSet()).andReturn(new HashSet<OptionElement>()).times(getContractOptionElementCounter);
         }
         mockUser = createMock(User.class);
-        if (getContractSetCounter > 0) {
-            expect(mockUser.getContractSet()).andReturn(contractSet).times(getContractSetCounter);
-        }
+        // TODO : replace with another test??
+//        if (getContractSetCounter > 0) {
+//            expect(mockUser.getContractSet()).andReturn(contractSet).times(getContractSetCounter);
+//        }
         if (getEmailCounter > 0) {
             expect(mockUser.getEmail1()).andReturn("test1@test.com").times(getEmailCounter);
         }

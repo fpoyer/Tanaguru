@@ -697,7 +697,8 @@ public class UserManagementControllerTest extends TestCase {
         expect(mockUser.getId()).andReturn(Long.valueOf(5)).anyTimes();
         expect(mockUser.getRole()).andReturn(mockUserRole).anyTimes();
 
-        expect(mockUser.getContractSet()).andReturn(new ArrayList<Contract>()).anyTimes();
+        // TODO : Replace with another test?? 
+        //expect(mockUser.getContractSet()).andReturn(new ArrayList<Contract>()).anyTimes();
         
         replay(mockUserDataService);
         replay(mockAdminUser);
