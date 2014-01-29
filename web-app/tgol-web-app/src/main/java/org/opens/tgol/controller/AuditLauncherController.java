@@ -50,6 +50,11 @@ import org.opens.tgol.util.TgolKeyStore;
 import org.opens.tgol.util.webapp.ExposablePropertyPlaceholderConfigurer;
 import org.opens.tgol.voter.restriction.RestrictionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.GrantedAuthoritySid;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.Sid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
@@ -263,7 +268,8 @@ public class AuditLauncherController extends AuditDataHandlerController {
             String url = getContractDataService().getUrlFromContractOption(contract);
             if (auditScope.equals(ScopeEnum.DOMAIN)) {
                 Act act = createAct(contract, ScopeEnum.GROUPOFPAGES, getClientIpAddress());
-                // TODO: add ACL right to current on that act. 
+                // set default ACL for this act
+                giveDefaultRightsFor(act);
                 tanaguruExecutor.auditSite(act, 
                     contract,
                     url,
@@ -274,7 +280,8 @@ public class AuditLauncherController extends AuditDataHandlerController {
                 model.addAttribute(TgolKeyStore.TESTED_URL_KEY, url);
             } else if (auditScope.equals(ScopeEnum.SCENARIO)) {
                 Act act = createAct(contract, ScopeEnum.SCENARIO, getClientIpAddress());
-                // TODO : add ACL right to current user on that act
+                // set default ACL for this act
+                giveDefaultRightsFor(act);
                 tanaguruExecutor.auditScenario(
                     act,
                     contract,
@@ -378,7 +385,8 @@ public class AuditLauncherController extends AuditDataHandlerController {
         if (trueUrl.size() == 1) {
             LOGGER.debug("Launch " + pageUrl + " audit in page mode");
             Act act = createAct(contract, ScopeEnum.PAGE, getClientIpAddress());
-            // TODO : give ACL rights to current user on that act.
+            // set default ACL for this act
+            giveDefaultRightsFor(act);
             return tanaguruExecutor.auditPage(act, 
                     pageUrl,
                     paramSet, 
@@ -392,7 +400,8 @@ public class AuditLauncherController extends AuditDataHandlerController {
             groupePagesName = extractGroupNameFromUrl(finalUrlTab[0]);
             LOGGER.debug("Launch " + groupePagesName + " audit in group of pages mode");
             Act act = createAct(contract, ScopeEnum.DOMAIN, getClientIpAddress());
-            // TODO : give ACL rights to current user on that act
+            // set default ACL for this act
+            giveDefaultRightsFor(act);
             return tanaguruExecutor.auditSite( act,
                     contract,
                     groupePagesName,
@@ -442,7 +451,9 @@ public class AuditLauncherController extends AuditDataHandlerController {
         } else {
             act = createAct(contract, ScopeEnum.FILE, getClientIpAddress());
         }
-        // TODO : add ACL rights to current user on that Act
+        
+        // set default ACL for this act
+        giveDefaultRightsFor(act);
         return tanaguruExecutor.auditPageUpload(
                 act,
                 contract,
@@ -654,6 +665,39 @@ public class AuditLauncherController extends AuditDataHandlerController {
         }
         paramSet.addAll(getParameterDataService().getParameterSetFromOptionElementSet(optionElementSet));
         return paramSet;
+    }
+    
+    private void giveDefaultRightsFor(Act act) {
+        ObjectIdentityImpl objectId = new ObjectIdentityImpl(act);
+        MutableAcl acl = getAclService().createAcl(objectId);
+
+        // First Sid in the list is required to be the Principal Sid
+        Sid principalSid = getCurrentSid().get(0);
+
+        // XXX The following line to set the owner are not needed, as the acl
+        // service actually used the current principal as the original owner
+        // of the created acl
+        // ----------------------------------------------
+        // acl.setOwner(principalSid);
+        // ----------------------------------------------
+        int index = 0;
+        acl.insertAce(index++, BasePermission.CREATE, principalSid, true);
+        acl.insertAce(index++, BasePermission.READ, principalSid, true);
+        acl.insertAce(index++, BasePermission.WRITE, principalSid, true);
+        acl.insertAce(index++, BasePermission.DELETE, principalSid, true);
+        acl.insertAce(index++, BasePermission.ADMINISTRATION, principalSid, true);
+        
+        Sid adminSid = new GrantedAuthoritySid("ROLE_ADMIN");
+        acl.insertAce(index++, BasePermission.CREATE, adminSid, true);
+        acl.insertAce(index++, BasePermission.READ, adminSid, true);
+        acl.insertAce(index++, BasePermission.WRITE, adminSid, true);
+        acl.insertAce(index++, BasePermission.DELETE, adminSid, true);
+        acl.insertAce(index++, BasePermission.ADMINISTRATION, adminSid, true);
+        
+        // TODO: set inheritance on Contract's ACL ?
+        
+        // Write the new ACL in base
+        getAclService().updateAcl(acl);
     }
     
 }
