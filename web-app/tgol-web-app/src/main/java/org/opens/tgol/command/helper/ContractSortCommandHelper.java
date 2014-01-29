@@ -27,6 +27,7 @@ import org.displaytag.properties.SortOrderEnum;
 import org.opens.tgol.command.ContractSortCommand;
 import org.opens.tgol.command.factory.ContractSortCommandFactory;
 import org.opens.tgol.entity.contract.Contract;
+import org.opens.tgol.entity.service.contract.ContractDataService;
 import org.opens.tgol.entity.user.User;
 import org.opens.tgol.form.FormField;
 import org.opens.tgol.form.builder.FormFieldBuilder;
@@ -109,7 +110,8 @@ public final class ContractSortCommandHelper  {
             User user, 
             ContractSortCommand csc, 
             List<FormFieldBuilder> displayOptionFieldsBuilderList,
-            Model model) {
+            Model model,
+            ContractDataService contractDataService) {
         
         csc = prepareDataForSortConsole(user.getId(), csc, displayOptionFieldsBuilderList, model);
 
@@ -126,7 +128,8 @@ public final class ContractSortCommandHelper  {
         } else {
             exclusionSortOccurence = new ArrayList<String>();
         }
-        for (Contract contract : user.getContractSet()) {
+        Collection<Contract> allAvailableContracts = contractDataService.findAll();
+        for (Contract contract : allAvailableContracts) {
             if (isContractLabelIncluded(inclusionSortOccurence, contract.getLabel()) &&
                     !isContractLabelExcluded(exclusionSortOccurence, contract.getLabel())) {
                 contractInfoSet.add(ContractInfoFactory.getInstance().getContractInfo(contract));
@@ -151,7 +154,8 @@ public final class ContractSortCommandHelper  {
             User user, 
             ContractSortCommand csc, 
             List<FormFieldBuilder> displayOptionFieldsBuilderList,
-            Model model) {
+            Model model,
+            ContractDataService contractDataService) {
         
         csc = prepareDataForSortConsole(
                 user.getId(), 
@@ -163,7 +167,8 @@ public final class ContractSortCommandHelper  {
                 Arrays.asList(csc.getSortOptionMap().get(inclusionContractSortKey).toString().split(";"));
         List<String> exclusionSortOccurence = 
                 Arrays.asList(csc.getSortOptionMap().get(exclusionContractSortKey).toString().split(";"));
-        for (Contract contract : user.getContractSet()) {
+        Collection<Contract> allAvailableContracts = contractDataService.findAll();
+        for (Contract contract : allAvailableContracts) {
             if (isContractLabelIncluded(inclusionSortOccurence, contract.getLabel()) &&
                     !isContractLabelExcluded(exclusionSortOccurence, contract.getLabel())) {
                 contractSet.add(contract);

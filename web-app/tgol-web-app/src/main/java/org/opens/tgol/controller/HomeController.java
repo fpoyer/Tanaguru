@@ -74,7 +74,8 @@ public class HomeController extends AbstractController {
                     user, 
                     null,
                     displayOptionFieldsBuilderList,
-                    model));
+                    model,
+                    getContractDataService()));
         return TgolKeyStore.HOME_VIEW_NAME;
     }
 
@@ -96,7 +97,8 @@ public class HomeController extends AbstractController {
                     user, 
                     contractDisplayCommand,
                     displayOptionFieldsBuilderList,
-                    model));
+                    model,
+                    getContractDataService()));
         return TgolKeyStore.HOME_VIEW_NAME;
     }
     
