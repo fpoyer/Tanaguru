@@ -40,6 +40,7 @@ import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.Acl;
 import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.security.core.Authentication;
@@ -235,6 +236,7 @@ public abstract class AbstractController {
         // Username
         Sid principalSid = new PrincipalSid(auth);
         sids.add(principalSid);
+        // TODO: roleHierarchy should be used here...
         // Granted Authorities
         for (GrantedAuthority grantedAuthority : auth.getAuthorities()) {
             sids.add(new GrantedAuthoritySid(grantedAuthority));
@@ -279,8 +281,12 @@ public abstract class AbstractController {
      */
     protected boolean isHoldingPermissions(List<Sid> sids,
             List<Permission> permissions, ObjectIdentityImpl objectIdentity) {
-        Acl acl = aclService.readAclById(objectIdentity, sids);
-
-        return (acl != null && acl.isGranted(permissions, sids, false));
+        try {
+            Acl acl = aclService.readAclById(objectIdentity, sids);
+            return (acl != null && acl.isGranted(permissions, sids, false));
+        } catch (NotFoundException e) {
+            // No ACLs found for this domain object => no permissions granted!
+            return false;
+        }
     }
 }
