@@ -26,11 +26,11 @@
         <intercept-url pattern="/admin/manage-contracts/add*" access="hasRole('ROLE_ADMIN')"/>
         <intercept-url pattern="/admin/manage-contracts/delete*" access="hasRole('ROLE_ADMIN')"/>
         <intercept-url pattern="/admin/manage-contracts/edit*" access="hasRole('ROLE_ADMIN')"/>
-        <intercept-url pattern="/home.html" access="hasRole('ROLE_USER) or hasRole('ROLE_ADMIN')"/>
+        <intercept-url pattern="/home.html" access="hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')"/>
         <intercept-url pattern="/home/contract*" access="hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')"/>
         <intercept-url pattern="/home/contract/*" access="hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')"/>
-        <intercept-url pattern="/home/contract/audit*" access="hasRole('ROLE_USER') or ROLE_ADMIN')"/>
-        <intercept-url pattern="/home/contract/page*" access="hasRole('ROLE_USER') or hasRole('ROLE_ADMIN'))"/>
+        <intercept-url pattern="/home/contract/audit*" access="hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')"/>
+        <intercept-url pattern="/home/contract/page*" access="hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')"/>
         <form-login login-page="/login.html" authentication-failure-url="/login.html?error=errorOnLogin" default-target-url="/dispatch.html"/>
         <logout delete-cookies="JSESSIONID" invalidate-session="false"/>
         <session-management invalid-session-url="/login.html?error=sessionTimeout" >
