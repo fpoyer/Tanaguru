@@ -240,7 +240,12 @@ public abstract class AbstractController {
         Sid principalSid = new PrincipalSid(auth);
         sids.add(principalSid);
         // Granted Authorities
-        Collection<? extends GrantedAuthority> authorities = roleHierarchy.getReachableGrantedAuthorities(auth.getAuthorities());
+        Collection<? extends GrantedAuthority> authorities;
+        if (roleHierarchy != null) {
+            authorities = roleHierarchy.getReachableGrantedAuthorities(auth.getAuthorities());
+        } else {
+            authorities = auth.getAuthorities();
+        }
         for (GrantedAuthority grantedAuthority : authorities) {
             sids.add(new GrantedAuthoritySid(grantedAuthority));
         }
@@ -284,6 +289,10 @@ public abstract class AbstractController {
      */
     protected boolean isHoldingPermissions(List<Sid> sids,
             List<Permission> permissions, ObjectIdentityImpl objectIdentity) {
+        if (this.aclService == null) {
+            // No ACLs strategy deployed, user have every rights
+            return true;
+        }
         try {
             Acl acl = aclService.readAclById(objectIdentity, sids);
             return (acl != null && acl.isGranted(permissions, sids, false));
