@@ -65,18 +65,7 @@ public class ContractDAOImplTest extends AbstractDaoTestCase {
         contractDataService.setEntityDao(contractDAO);
     }
     
-    /**
-     * Test of findAllContractsByUser method, of class ContractDAOImpl.
-     */
-    public void testFindAllContractsByUser() {
-        System.out.println("findAllContractsByUser");
-        User user = userDAO.read(Long.valueOf(1));
-        assertEquals(2, contractDAO.findAllContractsByUser(user).size());
-        user = userDAO.read(Long.valueOf(2));
-        assertEquals(0, contractDAO.findAllContractsByUser(user).size());
-    }
-
-    /**
+       /**
      * Test of read method, of class ContractDAOImpl.
      */
     public void testRead() {

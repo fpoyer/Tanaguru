@@ -18,8 +18,8 @@
     <TGSI_FUNCTIONALITY Id_Functionality="1" Code="PAGES_AUDIT" Label="Pages audit functionality"/>
     <TGSI_FUNCTIONALITY Id_Functionality="2" Code="SITE_AUDIT" Label="Site audit functionality" />
 
-    <TGSI_CONTRACT Id_Contract="1" Label="Contract1" Begin_Date="2011-01-01 00:00:00" End_Date="2012-01-01 23:59:59" USER_Id_User="1" Price="1000000.32" />
-    <TGSI_CONTRACT Id_Contract="2" Label="Contract2" Begin_Date="2011-01-01 13:50:29" End_Date="2011-06-30 23:59:59" USER_Id_User="1"/>
+    <TGSI_CONTRACT Id_Contract="1" Label="Contract1" Begin_Date="2011-01-01 00:00:00" End_Date="2012-01-01 23:59:59" Price="1000000.32" />
+    <TGSI_CONTRACT Id_Contract="2" Label="Contract2" Begin_Date="2011-01-01 13:50:29" End_Date="2011-06-30 23:59:59" />
 
     <TGSI_CONTRACT_FUNCTIONALITY CONTRACT_Id_Contract="1" FUNCTIONALITY_Id_Functionality="1"/>
     <TGSI_CONTRACT_FUNCTIONALITY CONTRACT_Id_Contract="2" FUNCTIONALITY_Id_Functionality="1"/>
