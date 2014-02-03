@@ -21,11 +21,24 @@
  */
 package org.opens.tgol.controller;
 
-import java.util.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import junit.framework.TestCase;
-import static org.easymock.EasyMock.*;
+
 import org.opens.tgol.action.Action;
 import org.opens.tgol.action.voter.ActionHandler;
 import org.opens.tgol.entity.contract.Act;
@@ -43,8 +56,10 @@ import org.opens.tgol.presentation.factory.DetailedContractInfoFactory;
 import org.opens.tgol.security.userdetails.TgolUserDetails;
 import org.opens.tgol.util.TgolKeyStore;
 import org.springframework.security.authentication.AuthenticationDetails;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.ui.ExtendedModelMap;
@@ -106,9 +121,9 @@ public class ContractControllerTest extends TestCase {
         if (mockAuthenticationDetails != null) {
             verify(mockAuthenticationDetails);
         }
-        if (mockAuthentication != null) {
-            verify(mockAuthentication);
-        }
+//        if (mockAuthentication != null) {
+//            verify(mockAuthentication);
+//        }
     }
 
     /**
@@ -117,7 +132,7 @@ public class ContractControllerTest extends TestCase {
     public void testDisplayContractPage_4args() {
         System.out.println("displayContractPage");
         
-        setUpUserDataService(1,1,1,1,3,1,3,1,false);
+        setUpUserDataService(false);
         setUpContractDataService(1,1);
         setUpActDataService(1,1,2,1,1);
         setUpLocaleResolver(1);
@@ -147,7 +162,7 @@ public class ContractControllerTest extends TestCase {
     public void testDisplayContractExpiredPage_4args() {
         System.out.println("displayContractExpiredPage");
         
-        setUpUserDataService(0,0,1,0,0,0,0,0,true);
+        setUpUserDataService(true);
         setUpContractDataService(0,0);
         setUpActDataService(0,0,0,0,0);
         setUpLocaleResolver(0);
@@ -178,51 +193,29 @@ public class ContractControllerTest extends TestCase {
     }
 
     private void setUpUserDataService(
-            int getContractLabelCounter, 
-            int getContractSetCounter, 
-            int getEmailCounter,
-            int getBeginDateCounter,
-            int getEndDateCounter,
-            int getFunctionalitySetCounter,
-            int getContractIdCounter,
-            int getContractOptionElementCounter,
             boolean expired) {
         mockContract = createMock(Contract.class);
         Collection<Contract> contractSet = new HashSet<Contract>();
         contractSet.add(mockContract);
-        if (getContractLabelCounter > 0) {
-            expect(mockContract.getLabel()).andReturn("").times(getContractLabelCounter);
-        }
-        if (getFunctionalitySetCounter > 0) {
-            expect(mockContract.getFunctionalitySet()).andReturn(new HashSet<Functionality>()).times(getFunctionalitySetCounter);
-        }
-        if (getContractIdCounter > 0) {
-            expect(mockContract.getId()).andReturn(Long.valueOf(1)).times(getContractIdCounter);
-        }
+            expect(mockContract.getLabel()).andReturn("").anyTimes();
+            expect(mockContract.getFunctionalitySet()).andReturn(new HashSet<Functionality>()).anyTimes();
+            expect(mockContract.getId()).andReturn(Long.valueOf(1)).anyTimes(); //getContractIdCounter);
         GregorianCalendar calendar = new GregorianCalendar();
         if (expired) {
             calendar.set(2011, 01, 01);
         } else {
             calendar.set(2030, 01, 01);
         }
-        if (getEndDateCounter > 0) {
-            expect(mockContract.getEndDate()).andReturn(calendar.getTime()).times(getEndDateCounter);
-        }
-        if (getBeginDateCounter > 0) {
-            calendar.set(2010, 01, 01);
-            expect(mockContract.getBeginDate()).andReturn(calendar.getTime()).times(getBeginDateCounter);
-        }
-        if (getContractOptionElementCounter > 0) {
-            expect(mockContract.getOptionElementSet()).andReturn(new HashSet<OptionElement>()).times(getContractOptionElementCounter);
-        }
+            expect(mockContract.getEndDate()).andReturn(calendar.getTime()).anyTimes();
+             calendar.set(2010, 01, 01);
+            expect(mockContract.getBeginDate()).andReturn(calendar.getTime()).anyTimes();
+            expect(mockContract.getOptionElementSet()).andReturn(new HashSet<OptionElement>()).anyTimes();
         mockUser = createMock(User.class);
         // TODO : replace with another test??
 //        if (getContractSetCounter > 0) {
 //            expect(mockUser.getContractSet()).andReturn(contractSet).times(getContractSetCounter);
 //        }
-        if (getEmailCounter > 0) {
-            expect(mockUser.getEmail1()).andReturn("test1@test.com").times(getEmailCounter);
-        }
+            expect(mockUser.getEmail1()).andReturn("test1@test.com").anyTimes();
         expect(mockUser.getFirstName()).andReturn("").once();
         expect(mockUser.getName()).andReturn("").once();
         
@@ -293,17 +286,17 @@ public class ContractControllerTest extends TestCase {
     private void setUpMockAuthenticationContext(){
         // initialise the context with the user identified by the email 
         // "test1@test.com" seen as authenticated
-        Collection<GrantedAuthority> gac = new ArrayList<GrantedAuthority>();
+        List<GrantedAuthority> gac = new ArrayList<GrantedAuthority>();
         TgolUserDetails tud = new TgolUserDetails("test1@test.com", "", true, false, true, true, gac, mockUser);
         
-        mockAuthentication = createMock(Authentication.class);
+        mockAuthentication = new TestingAuthenticationToken(tud, null, gac);//createMock(Authentication.class);
         SecurityContextImpl securityContextImpl = new SecurityContextImpl();
         securityContextImpl.setAuthentication(mockAuthentication);
         SecurityContextHolder.setContext(securityContextImpl);
-        expect(mockAuthentication.getName()).andReturn("test1@test.com").anyTimes();
-        expect(mockAuthentication.getPrincipal()).andReturn(tud).anyTimes();
-        expect(mockAuthentication.getAuthorities()).andReturn(null).anyTimes();
-        replay(mockAuthentication);
+//        expect(mockAuthentication.getName()).andReturn("test1@test.com").anyTimes();
+//        expect(mockAuthentication.getPrincipal()).andReturn(tud).anyTimes();
+//        expect(mockAuthentication.getAuthorities()).andReturn(null).anyTimes();
+//        replay(mockAuthentication);
         
         mockAuthenticationDetails = createMock(AuthenticationDetails.class);
         expect(mockAuthenticationDetails.getContext()).andReturn("test1@test.com").anyTimes();

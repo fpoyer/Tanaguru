@@ -22,8 +22,10 @@
 package org.opens.tgol.controller;
 
 import java.util.*;
+
 import junit.framework.TestCase;
 import static org.easymock.EasyMock.*;
+
 import org.opens.tanaguru.entity.parameterization.Parameter;
 import org.opens.tanaguru.entity.parameterization.ParameterElement;
 import org.opens.tanaguru.entity.service.parameterization.ParameterElementDataService;
@@ -46,6 +48,7 @@ import org.opens.tgol.form.parameterization.builder.AuditSetUpFormFieldBuilderIm
 import org.opens.tgol.security.userdetails.TgolUserDetails;
 import org.opens.tgol.util.TgolKeyStore;
 import org.springframework.security.authentication.AuthenticationDetails;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -94,9 +97,9 @@ public class AuditSetUpControllerTest extends TestCase {
     
     @Override
     protected void tearDown() throws Exception {
-        if (mockAuthentication != null) {
-            verify(mockAuthentication);
-        }
+//        if (mockAuthentication != null) {
+//            verify(mockAuthentication);
+//        }
         if (mockAuthenticationDetails != null) {
             verify(mockAuthenticationDetails);
         }
@@ -141,7 +144,7 @@ public class AuditSetUpControllerTest extends TestCase {
         // set-up
         setUpMockUserDataServiceAndUser();
         setUpMockAuthenticationContext();
-        setUpMockContractDataService(2,1,1,"Contract1", 1,1,1,1,1,1,2);
+        setUpMockContractDataService(1,"Contract1", 1);
         setUpViewFunctionalityBindingMap();
         setUpAuditSetUpCommandFactory();
         Model model = new ExtendedModelMap();
@@ -165,7 +168,7 @@ public class AuditSetUpControllerTest extends TestCase {
         // Set-up
         setUpMockUserDataServiceAndUser();
         setUpMockAuthenticationContext();
-        setUpMockContractDataService(1,3,1,"Contract1",1,1,1,1,1,1,1);
+        setUpMockContractDataService(1,"Contract1",1);
         setUpViewFunctionalityBindingMap();
         setUpAuditSetUpCommandFactory();
         Model model = new ExtendedModelMap();
@@ -184,7 +187,7 @@ public class AuditSetUpControllerTest extends TestCase {
         // Set-up
         setUpMockUserDataServiceAndUser();
         setUpMockAuthenticationContext();
-        setUpMockContractDataService(2,1,1,"Contract1", 1,1,1,1,1,1,1);
+        setUpMockContractDataService(1,"Contract1", 1);
         setUpViewFunctionalityBindingMap();
         setUpAuditSetUpCommandFactory();
         Model model = new ExtendedModelMap();
@@ -203,7 +206,7 @@ public class AuditSetUpControllerTest extends TestCase {
         
         // set-up
         setUpMockUserDataServiceAndUser();
-        setUpMockContractDataService(0,0,1,"Contract1", 0,0,0,0,1,0,0);
+        setUpMockContractDataService(1,"Contract1", 1);
         
         // the contract Id cannot be converted as a Long. An exception is caught
         try {
@@ -219,7 +222,7 @@ public class AuditSetUpControllerTest extends TestCase {
         
         // set-up
         setUpMockUserDataServiceAndUser();
-        setUpMockContractDataService(0,0,1,"Contract1", 0,0,0,0,1,0,0);
+        setUpMockContractDataService(1,"Contract1", 1);
         
         // the contract Id cannot be converted as a Long. An exception is caught
         try {
@@ -235,7 +238,7 @@ public class AuditSetUpControllerTest extends TestCase {
 
         // set-up
         setUpMockUserDataServiceAndUser();
-        setUpMockContractDataService(0,0,1,"Contract1", 0,0,0,0,1,0,0);
+        setUpMockContractDataService(1,"Contract1", 1);
         
         // the contract Id cannot be converted as a Long. An exception is caught
         try {
@@ -250,7 +253,7 @@ public class AuditSetUpControllerTest extends TestCase {
         System.out.println("testDisplayPageAuditPageSetUpWithUnauthorisedFunctionality");
         
         setUpMockUserDataServiceAndUser();
-        setUpMockContractDataService(1,0,2,"Contract1", 0,1,0,0,2,1,0);
+        setUpMockContractDataService(2,"Contract1", 2);
         setUpEmptyViewFunctionalityBindingMap();
         
         // the functionality associated with the contract is not allowed 
@@ -267,7 +270,7 @@ public class AuditSetUpControllerTest extends TestCase {
         System.out.println("testDisplayPageAuditSiteSetUpWithUnauthorisedFunctionality");
         
         setUpMockUserDataServiceAndUser();
-        setUpMockContractDataService(1,0,2,"Contract1", 0,1,0,0,2,1,0);
+        setUpMockContractDataService(2,"Contract1", 2);
         setUpEmptyViewFunctionalityBindingMap();
 
         // the functionality associated with the contract is not allowed 
@@ -284,7 +287,7 @@ public class AuditSetUpControllerTest extends TestCase {
         System.out.println("testDisplayPageAuditUploadSetUpWithUnauthorisedFunctionality");
         
         setUpMockUserDataServiceAndUser();
-        setUpMockContractDataService(1,0,2,"Contract1", 0,1,0,0,2,1,0);
+        setUpMockContractDataService(2,"Contract1", 2);
         setUpEmptyViewFunctionalityBindingMap();
         
         // the functionality associated with the contract is not allowed 
@@ -301,19 +304,19 @@ public class AuditSetUpControllerTest extends TestCase {
         // initialise the context with the user identified by the email 
         // "test1@test.com" seen as authenticated
         
-        Collection<GrantedAuthority> gac = new ArrayList<GrantedAuthority>();
+        List<GrantedAuthority> gac = new ArrayList<GrantedAuthority>();
         TgolUserDetails tud = new TgolUserDetails("test1@test.com", "", true, false, true, true, gac, mockUser);
         
-        mockAuthentication = createMock(Authentication.class);
+        mockAuthentication = new TestingAuthenticationToken(tud, null, gac);
         SecurityContextImpl securityContextImpl = new SecurityContextImpl();
         securityContextImpl.setAuthentication(mockAuthentication);
         SecurityContextHolder.setContext(securityContextImpl);
         
-        expect(mockAuthentication.getName()).andReturn("test1@test.com").anyTimes();
-        expect(mockAuthentication.getPrincipal()).andReturn(tud).anyTimes();
-        expect(mockAuthentication.getAuthorities()).andReturn(null).anyTimes();
-        
-        replay(mockAuthentication);
+//        expect(mockAuthentication.getName()).andReturn("test1@test.com").anyTimes();
+//        expect(mockAuthentication.getPrincipal()).andReturn(tud).anyTimes();
+//        expect(mockAuthentication.getAuthorities()).andReturn(null).anyTimes();
+//        
+//        replay(mockAuthentication);
         
         mockAuthenticationDetails = createMock(AuthenticationDetails.class);
         expect(mockAuthenticationDetails.getContext()).andReturn("test1@test.com").anyTimes();
@@ -342,46 +345,24 @@ public class AuditSetUpControllerTest extends TestCase {
     }
     
     private void setUpMockContractDataService(
-            int getContractUserCount, 
-            int getContractIdCount,
             int getContractIdValue, 
             String contractLabel,
-            int getContractLabelCount, 
-            int getFunctionalitySetCount, 
-            int getReferentialSetCount, 
-            int getOptionElementSetCount, 
-            int readContractId, 
-            int getReadContractIdCount, 
-            int getUrlFromContractOption) {
+            int readContractId) {
         
         mockContract = createMock(Contract.class);
         // TODO Replace by another test??
         // if (getContractUserCount > 0) {
         // expect(mockContract.getUser()).andReturn(mockUser).times(getContractUserCount);
         // }
-        if (getContractIdCount > 0) {
-            expect(mockContract.getId()).andReturn(Long.valueOf(getContractIdValue)).times(getContractIdCount);
-        }
-        if (getContractLabelCount > 0) {
-            expect(mockContract.getLabel()).andReturn(contractLabel).times(getContractLabelCount);
-        }
-        if (getFunctionalitySetCount > 0) {
-            expect(mockContract.getFunctionalitySet()).andReturn(setUpMockFunctionalitySet()).times(getFunctionalitySetCount);
-        }
-        if (getReferentialSetCount > 0) {
-            expect(mockContract.getReferentialSet()).andReturn(setUpMockReferentialSet()).times(getReferentialSetCount);
-        }
-        if (getOptionElementSetCount > 0) {
-            expect(mockContract.getOptionElementSet()).andReturn(setUpMockOptionElementSet()).times(getOptionElementSetCount);
-        }
+            expect(mockContract.getId()).andReturn(Long.valueOf(getContractIdValue)).anyTimes();
+            expect(mockContract.getLabel()).andReturn(contractLabel).anyTimes();
+            expect(mockContract.getFunctionalitySet()).andReturn(setUpMockFunctionalitySet()).anyTimes();
+            expect(mockContract.getReferentialSet()).andReturn(setUpMockReferentialSet()).anyTimes();
+            expect(mockContract.getOptionElementSet()).andReturn(setUpMockOptionElementSet()).anyTimes();
         mockContractDataService = createMock(ContractDataService.class);
         
-        if (getReadContractIdCount > 0) {
-            expect(mockContractDataService.read(Long.valueOf(readContractId))).andReturn(mockContract).times(getReadContractIdCount);
-        }
-        if (getUrlFromContractOption > 0) {
-            expect(mockContractDataService.getUrlFromContractOption(mockContract)).andReturn("http://www.test1.com").times(getUrlFromContractOption);
-        }
+            expect(mockContractDataService.read(Long.valueOf(readContractId))).andReturn(mockContract).anyTimes();
+            expect(mockContractDataService.getUrlFromContractOption(mockContract)).andReturn("http://www.test1.com").anyTimes();
         replay(mockContract);
         replay(mockContractDataService);
         instance.setContractDataService(mockContractDataService);
@@ -408,7 +389,7 @@ public class AuditSetUpControllerTest extends TestCase {
     private Set<OptionElement> setUpMockOptionElementSet() {
         mockOption = createMock(Option.class);
         mockOptionElement = createMock(OptionElement.class);
-        expect(mockOptionElement.getOption()).andReturn(mockOption);
+        expect(mockOptionElement.getOption()).andReturn(mockOption).anyTimes();
         expect(mockOption.getCode()).andReturn("").anyTimes();
         
         Set<OptionElement> mockOptionElementSet = new HashSet<OptionElement>();

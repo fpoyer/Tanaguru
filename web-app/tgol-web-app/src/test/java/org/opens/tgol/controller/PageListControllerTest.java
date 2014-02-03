@@ -22,10 +22,15 @@
 package org.opens.tgol.controller;
 
 import java.util.*;
+
 import javax.servlet.http.HttpServletResponse;
+
 import junit.framework.TestCase;
+
 import org.apache.commons.lang.StringUtils;
+
 import static org.easymock.EasyMock.*;
+
 import org.opens.tanaguru.entity.audit.Audit;
 import org.opens.tanaguru.entity.audit.TestSolution;
 import org.opens.tanaguru.entity.parameterization.Parameter;
@@ -55,6 +60,7 @@ import org.opens.tgol.util.TgolKeyStore;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.AuthenticationDetails;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -150,9 +156,9 @@ public class PageListControllerTest extends TestCase {
         if (mockAuthenticationDetails != null) {
             verify(mockAuthenticationDetails);
         }
-        if (mockAuthentication != null) {
-            verify(mockAuthentication);
-        }
+//        if (mockAuthentication != null) {
+//            verify(mockAuthentication);
+//        }
         if (mockAuditDataService != null) {
             verify(mockAuditDataService);
         }
@@ -378,16 +384,16 @@ public class PageListControllerTest extends TestCase {
     private void setUpMockAuthenticationContext(){
         // initialise the context with the user identified by the email 
         // "test1@test.com" seen as authenticated
-        Collection<GrantedAuthority> gac = new ArrayList<GrantedAuthority>();
+        List<GrantedAuthority> gac = new ArrayList<GrantedAuthority>();
         TgolUserDetails tud = new TgolUserDetails("test1@test.com", "", true, false, true, true, gac, mockUser);
-        mockAuthentication = createMock(Authentication.class);
+        mockAuthentication = new TestingAuthenticationToken(tud, null, gac);
         SecurityContextImpl securityContextImpl = new SecurityContextImpl();
         securityContextImpl.setAuthentication(mockAuthentication);
         SecurityContextHolder.setContext(securityContextImpl);
-        expect(mockAuthentication.getName()).andReturn("test1@test.com").anyTimes();
-        expect(mockAuthentication.getPrincipal()).andReturn(tud).anyTimes();
-        expect(mockAuthentication.getAuthorities()).andReturn(null).anyTimes();
-        replay(mockAuthentication);
+//        expect(mockAuthentication.getName()).andReturn("test1@test.com").anyTimes();
+//        expect(mockAuthentication.getPrincipal()).andReturn(tud).anyTimes();
+//        expect(mockAuthentication.getAuthorities()).andReturn(null).anyTimes();
+//        replay(mockAuthentication);
         
         mockAuthenticationDetails = createMock(AuthenticationDetails.class);
         expect(mockAuthenticationDetails.getContext()).andReturn("test1@test.com").anyTimes();
@@ -436,6 +442,7 @@ public class PageListControllerTest extends TestCase {
         
         mockActDataService = createMock(ActDataService.class);
         mockAct = createMock(Act.class);
+        expect(mockAct.getId()).andReturn(Long.valueOf(0)).anyTimes();
         
         expect(mockActDataService.getActFromAudit(mockAudit))
                 .andReturn(mockAct)
