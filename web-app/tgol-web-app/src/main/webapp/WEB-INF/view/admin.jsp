@@ -117,15 +117,12 @@
                 </c:when>
             </c:choose>
             </div>
+            <!-- Users -->
             <div class="row">
                 <div class="span12 admin-action">
                     <a class="btn btn-primary" href="<c:url value="/admin/add-user.html"/>">
                         <img src="${addUser}" alt="">
                         <fmt:message key="admin.addUser"/>
-                    </a>
-                    <a class="btn btn-primary" href="<c:url value="/admin/add-contract.html"/>">
-                        <img src="${addContract}" alt="">
-                        <fmt:message key="admin.addContract"/>
                     </a>
                 </div>
             </div>
@@ -138,13 +135,9 @@
                         <thead>
                             <tr>
                                 <th id="user-id" scope="col" class="col01"><fmt:message key="admin.userId"/></th>
-                                <th id="last-name" scope="col" class="col02"><fmt:message key="admin.lastName"/></th>
-                                <th id="first-name" scope="col" class="col03"><fmt:message key="admin.firstName"/></th>
                                 <th id="activated" scope="col" class="col04"><fmt:message key="admin.activated"/></th>
                                 <th id="edit" scope="col" class="col05"><fmt:message key="admin.edit"/></th>
                                 <th id="delete-user" scope="col" class="col06"><fmt:message key="admin.delete"/></th>
-                                <th id="edit-contract" scope="col" class="col07"><fmt:message key="admin.manage"/></th>
-                                <th id="delete-audits" scope="col" class="col08"><fmt:message key="admin.deleteAudits"/></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -152,12 +145,6 @@
                             <tr>
                                 <td headers="user-id" class="col01">
                                     ${user.email1}
-                                </td>
-                                <td headers="last-name" class="col02">
-                                    ${user.name}
-                                </td>
-                                <td headers="first-name" class="col03">
-                                    ${user.firstName}
                                 </td>
                                 <td headers="activated" class="col04">
                                     <c:choose>
@@ -186,16 +173,6 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td headers="edit-contract" class="col07">
-                                    <a href="<c:url value="/admin/manage-contracts.html?user=${user.id}"/>" title="<fmt:message key="admin.manageContractsTitle"><fmt:param>${user.email1}</fmt:param></fmt:message>">
-                                        <img src="${editContract}" alt="<fmt:message key="admin.manageContractsTitle"><fmt:param>${user.email1}</fmt:param></fmt:message>"/>
-                                    </a>
-                                </td>
-                                <td headers="delete-audits" class="col08">
-                                    <a class="button" href="<c:url value="/admin/delete-user-audits.html?user=${user.id}"/>" title="<fmt:message key="admin.deleteAuditsTitle"><fmt:param>${user.email1}</fmt:param></fmt:message>">
-                                        <img src="${deleteAudits}" alt="<fmt:message key="admin.deleteAuditsTitle"><fmt:param>${user.email1}</fmt:param></fmt:message>"/>
-                                    </a>
-                                </td>
                             </tr>    
                     </c:forEach>
                         </tbody>
@@ -206,7 +183,62 @@
                         <img src="${addUser}" alt="">
                         <fmt:message key="admin.addUser"/>
                     </a>
-                    <a class="btn btn-primary" href="<c:url value="/admin/add-contract.html"/>">
+                </div>
+                </c:when>
+                <c:otherwise>
+                <div class="span16">
+                    <fmt:message key="admin.noUser"/>
+                </div>
+                </c:otherwise>
+            </c:choose>
+            </div>
+            <!-- / Users -->
+            
+            <!-- Contracts -->
+            <div class="row">
+                <div class="span12 admin-action">
+                    <a class="btn btn-primary" href="<c:url value="/admin/contract/add.html"/>">
+                        <img src="${addContract}" alt="">
+                        <fmt:message key="admin.addContract"/>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+            <c:choose>
+                <c:when test="${not empty contractList}">
+                <div class="span16 tg-table-container">
+                    <table id="contract-list-table" class="tg-table">
+                        <caption><fmt:message key="admin.contractList"/></caption>
+                        <thead>
+                            <tr>
+                                <th id="contract-id" scope="col" class="col01"><fmt:message key="admin.contractId"/></th>
+                                <th id="edit" scope="col" class="col02"><fmt:message key="admin.edit"/></th>
+                                <th id="delete-contract" scope="col" class="col03"><fmt:message key="admin.delete"/></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    <c:forEach items="${contractList}" var="contract">
+                            <tr>
+                                <td headers="contract-id" class="col01">
+                                    ${contract.id}
+                                </td>
+                                <td headers="edit" class="col02">
+                                    <a href="<c:url value="/admin/edit/contract.html?cr=${contract.id}"/>" title="<fmt:message key="manage-contracts.editContractTitle"><fmt:param>${contract.label}</fmt:param></fmt:message>">
+                                        <img src="${editContract}" alt="<fmt:message key="manage-contracts.editContractTitle"><fmt:param>${contract.label}</fmt:param></fmt:message>"/>
+                                    </a>
+                                </td>
+                                <td headers="delete-contract" class="col03">
+                                    <a href="<c:url value="/admin/manage-contracts/delete-contract.html?cr=${contract.id}"/>" title="<fmt:message key="manage-contracts.deleteContractTitle"><fmt:param>${contract.label}</fmt:param></fmt:message>">
+                                        <img src="${deleteContract}" alt="<fmt:message key="manage-contracts.deleteContractTitle"><fmt:param>${contract.label}</fmt:param></fmt:message>"/>
+                                    </a>
+                                </td>
+                            </tr>    
+                    </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="span12 admin-action">
+                    <a class="btn btn-primary" href="<c:url value="/admin/contract/add.html"/>">
                         <img src="${addContract}" alt="">
                         <fmt:message key="admin.addContract"/>
                     </a>
@@ -214,7 +246,7 @@
                 </c:when>
                 <c:otherwise>
                 <div class="span16">
-                    <fmt:message key="admin.noUser"/>
+                    <fmt:message key="admin.noContract"/>
                 </div>
                 </c:otherwise>
             </c:choose>
