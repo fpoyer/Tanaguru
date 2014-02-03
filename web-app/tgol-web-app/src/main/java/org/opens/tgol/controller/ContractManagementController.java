@@ -101,14 +101,6 @@ public class ContractManagementController extends AbstractUserAndContractsContro
         }
         User userToManage = getUserDataService().read(lUserId);
 
-        model.addAttribute(
-                TgolKeyStore.CONTRACT_LIST_KEY, 
-                ContractSortCommandHelper.prepareContract(
-                    userToManage, 
-                    null,
-                    displayOptionFieldsBuilderList,
-                    model));
-        
         model.addAttribute(TgolKeyStore.USER_NAME_KEY, userToManage.getEmail1());
         return TgolKeyStore.MANAGE_CONTRACTS_VIEW_NAME;
     }
@@ -136,14 +128,6 @@ public class ContractManagementController extends AbstractUserAndContractsContro
             throw new ForbiddenUserException();
         }
         User userToManage = getUserDataService().read(lUserId);
-        
-        model.addAttribute(
-                TgolKeyStore.CONTRACT_LIST_KEY, 
-                ContractSortCommandHelper.prepareContract(
-                    userToManage, 
-                    contractDisplayCommand,
-                    displayOptionFieldsBuilderList,
-                    model));
         
         model.addAttribute(TgolKeyStore.USER_NAME_KEY, userToManage.getEmail1());
         return TgolKeyStore.MANAGE_CONTRACTS_VIEW_NAME;
@@ -180,7 +164,7 @@ public class ContractManagementController extends AbstractUserAndContractsContro
                 model,
                 userToManage,
                 null,
-                ContractOptionFormFieldHelper.getFreshContractOptionFormFieldMap(getContractOptionFormFieldBuilderMap()),
+                ContractOptionFormFieldHelper.getFreshContractOptionFormFieldMap(),
                 TgolKeyStore.ADD_CONTRACT_VIEW_NAME);
     }
     
@@ -213,7 +197,7 @@ public class ContractManagementController extends AbstractUserAndContractsContro
         }
         
         Map<String, List<ContractOptionFormField>> optionFormFieldMap = 
-                    ContractOptionFormFieldHelper.getFreshContractOptionFormFieldMap(getContractOptionFormFieldBuilderMap());
+                    ContractOptionFormFieldHelper.getFreshContractOptionFormFieldMap();
 
         getCreateContractFormValidator().setContractOptionFormFieldMap(optionFormFieldMap);
         // We check whether the form is valid
@@ -232,7 +216,8 @@ public class ContractManagementController extends AbstractUserAndContractsContro
         }
         
         Contract contract = getContractDataService().create();
-        contract.setUser(currentModifiedUser);
+        // TODO : replace with a call to ACL Service.
+        //contract.setUser(currentModifiedUser);
         contract = CreateContractCommandFactory.getInstance().updateContractFromCommand(
                 createContractCommand, 
                 contract);
@@ -240,7 +225,7 @@ public class ContractManagementController extends AbstractUserAndContractsContro
         saveOrUpdateContract(contract);
 
         request.getSession().setAttribute(TgolKeyStore.ADDED_CONTRACT_NAME_KEY,contract.getLabel());
-        model.addAttribute(TgolKeyStore.USER_ID_KEY,contract.getUser().getId());
+        model.addAttribute(TgolKeyStore.USER_ID_KEY,lUserId);
         request.getSession().removeAttribute(TgolKeyStore.USER_ID_KEY);
         return TgolKeyStore.MANAGE_CONTRACTS_VIEW_REDIRECT_NAME;
     }
@@ -271,13 +256,7 @@ public class ContractManagementController extends AbstractUserAndContractsContro
             throw new ForbiddenPageException();
         }
         request.getSession().setAttribute(TgolKeyStore.CONTRACT_ID_KEY,contract.getId());
-
-        return prepateDataAndReturnCreateContractView(
-                model,
-                contract.getUser(),
-                contract,
-                ContractOptionFormFieldHelper.getFreshContractOptionFormFieldMap(getContractOptionFormFieldBuilderMap()),
-                TgolKeyStore.EDIT_CONTRACT_VIEW_NAME);
+        return null;
     }
     
     /**
@@ -310,27 +289,27 @@ public class ContractManagementController extends AbstractUserAndContractsContro
 
         Contract contract = getContractDataService().read(lContractId);
         Map<String, List<ContractOptionFormField>> optionFormFieldMap = 
-                    ContractOptionFormFieldHelper.getFreshContractOptionFormFieldMap(getContractOptionFormFieldBuilderMap());
+                    ContractOptionFormFieldHelper.getFreshContractOptionFormFieldMap();
 
         getCreateContractFormValidator().setContractOptionFormFieldMap(optionFormFieldMap);
         // We check whether the form is valid
         getCreateContractFormValidator().validate(createContractCommand, result);
         // If the form has some errors, we display it again with errors' details
-        if (result.hasErrors()) {
-            return displayFormWithErrors(
-                    model,
-                    createContractCommand,
-                    contract.getUser().getEmail1(),
-                    contract.getUser().getId(),
-                    optionFormFieldMap,
-                    TgolKeyStore.EDIT_CONTRACT_VIEW_NAME);
-        }
+//        if (result.hasErrors()) {
+//            return displayFormWithErrors(
+//                    model,
+//                    createContractCommand,
+//                    contract.getUser().getEmail1(),
+//                    contract.getUser().getId(),
+//                    optionFormFieldMap,
+//                    TgolKeyStore.EDIT_CONTRACT_VIEW_NAME);
+//        }
         
         contract = CreateContractCommandFactory.getInstance().updateContractFromCommand(createContractCommand, contract);
         saveOrUpdateContract(contract);
 
         request.getSession().setAttribute(TgolKeyStore.UPDATED_CONTRACT_NAME_KEY,contract.getLabel());
-        model.addAttribute(TgolKeyStore.USER_ID_KEY,contract.getUser().getId());
+//        model.addAttribute(TgolKeyStore.USER_ID_KEY,contract.getUser().getId());
         request.getSession().removeAttribute(TgolKeyStore.CONTRACT_ID_KEY);
         return TgolKeyStore.MANAGE_CONTRACTS_VIEW_REDIRECT_NAME;
     }
@@ -359,8 +338,8 @@ public class ContractManagementController extends AbstractUserAndContractsContro
         
         request.getSession().setAttribute(TgolKeyStore.CONTRACT_ID_TO_DELETE_KEY,contractToDelete.getId());
         model.addAttribute(TgolKeyStore.CONTRACT_NAME_TO_DELETE_KEY, contractToDelete.getLabel());
-        model.addAttribute(TgolKeyStore.USER_ID_KEY,contractToDelete.getUser().getId());
-        model.addAttribute(TgolKeyStore.USER_NAME_KEY,contractToDelete.getUser().getEmail1());
+//        model.addAttribute(TgolKeyStore.USER_ID_KEY,contractToDelete.getUser().getId());
+//        model.addAttribute(TgolKeyStore.USER_NAME_KEY,contractToDelete.getUser().getEmail1());
         
         return TgolKeyStore.DELETE_CONTRACT_VIEW_NAME;
     }
@@ -394,12 +373,12 @@ public class ContractManagementController extends AbstractUserAndContractsContro
         getContractDataService().delete(contractToDelete.getId());
         // The current user has been updated, its storage in session needs also
         // to be updated
-        if (getAuthenticatedUsername().equals(contractToDelete.getUser().getEmail1())) {
-            updateCurrentUser(getUserDataService().read(contractToDelete.getUser().getId()));
-        }
-        request.getSession().removeAttribute(TgolKeyStore.CONTRACT_ID_TO_DELETE_KEY);
-        request.getSession().setAttribute(TgolKeyStore.DELETED_CONTRACT_NAME_KEY,contractToDelete.getLabel());
-        model.addAttribute(TgolKeyStore.USER_ID_KEY,contractToDelete.getUser().getId());
+//        if (getAuthenticatedUsername().equals(contractToDelete.getUser().getEmail1())) {
+//            updateCurrentUser(getUserDataService().read(contractToDelete.getUser().getId()));
+//        }
+//        request.getSession().removeAttribute(TgolKeyStore.CONTRACT_ID_TO_DELETE_KEY);
+//        request.getSession().setAttribute(TgolKeyStore.DELETED_CONTRACT_NAME_KEY,contractToDelete.getLabel());
+//        model.addAttribute(TgolKeyStore.USER_ID_KEY,contractToDelete.getUser().getId());
         
         return TgolKeyStore.MANAGE_CONTRACTS_VIEW_REDIRECT_NAME;
     }
@@ -428,8 +407,8 @@ public class ContractManagementController extends AbstractUserAndContractsContro
         Contract contractToDelete = getContractDataService().read(lContractId);
         
         model.addAttribute(TgolKeyStore.CONTRACT_NAME_TO_DELETE_KEY, contractToDelete.getLabel());
-        model.addAttribute(TgolKeyStore.USER_ID_KEY, contractToDelete.getUser().getId());
-        model.addAttribute(TgolKeyStore.USER_NAME_KEY, contractToDelete.getUser().getEmail1());
+//        model.addAttribute(TgolKeyStore.USER_ID_KEY, contractToDelete.getUser().getId());
+//        model.addAttribute(TgolKeyStore.USER_NAME_KEY, contractToDelete.getUser().getEmail1());
         request.getSession().setAttribute(TgolKeyStore.CONTRACT_ID_TO_DELETE_KEY,contractToDelete.getId());
         
         return TgolKeyStore.DELETE_AUDITS_VIEW_NAME;
@@ -463,7 +442,7 @@ public class ContractManagementController extends AbstractUserAndContractsContro
         deleteAllAuditsFromContract(contractToDelete);
         request.getSession().removeAttribute(TgolKeyStore.CONTRACT_ID_TO_DELETE_KEY);
         request.getSession().setAttribute(TgolKeyStore.DELETED_CONTRACT_AUDITS_NAME_KEY,contractToDelete.getLabel());
-        model.addAttribute(TgolKeyStore.USER_ID_KEY,contractToDelete.getUser().getId());
+//        model.addAttribute(TgolKeyStore.USER_ID_KEY,contractToDelete.getUser().getId());
         return TgolKeyStore.MANAGE_CONTRACTS_VIEW_REDIRECT_NAME;
     }
  
@@ -473,9 +452,9 @@ public class ContractManagementController extends AbstractUserAndContractsContro
      */
     private void saveOrUpdateContract(Contract contract) {
        getContractDataService().saveOrUpdate(contract);
-       if (getAuthenticatedUsername().equals(contract.getUser().getEmail1())) {
-           updateCurrentUser(getUserDataService().read(contract.getUser().getId()));
-       }
+//       if (getAuthenticatedUsername().equals(contract.getUser().getEmail1())) {
+//           updateCurrentUser(getUserDataService().read(contract.getUser().getId()));
+//       }
     }
     
 }

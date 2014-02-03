@@ -325,24 +325,6 @@
         <property name="createContractFormValidator">
             <ref bean="createContractFormValidator"/>
         </property>
-        <property name="contractOptionFormFieldBuilderMap">
-            <map>
-                <entry key="general-options">
-                    <list>
-                        <ref bean="nbMaxAuditsPerContractOptionBuilder"/>
-                        <ref bean="nbMaxActsToDisplayPerContractOptionBuilder"/>
-                    </list>
-                </entry>
-                <entry key="crawl-options">
-                    <list>
-                        <ref bean="depthOptionBuilder"/>
-                        <ref bean="maxDurationOptionBuilder"/>
-                        <ref bean="maxDocumentsOptionBuilder"/>
-                        <ref bean="exclusionRegexpOptionBuilder"/>
-                    </list>
-                </entry>
-            </map>
-        </property>
     </bean>
     
     <bean id="contractManagementController" class="org.opens.tgol.controller.ContractManagementController">
@@ -356,24 +338,6 @@
                 <ref bean="exclusionRegexpContractFormFieldBuilder"/>
             </list>
         </property>
-        <property name="contractOptionFormFieldBuilderMap">
-            <map>
-                <entry key="general-options">
-                    <list>
-                        <ref bean="nbMaxAuditsPerContractOptionBuilder"/>
-                        <ref bean="nbMaxActsToDisplayPerContractOptionBuilder"/>
-                    </list>
-                </entry>
-                <entry key="crawl-options">
-                    <list>
-                        <ref bean="depthOptionBuilder"/>
-                        <ref bean="maxDurationOptionBuilder"/>
-                        <ref bean="maxDocumentsOptionBuilder"/>
-                        <ref bean="exclusionRegexpOptionBuilder"/>
-                    </list>
-                </entry>
-            </map>
-        </property>
     </bean>
 
     <bean id="forgottenOrChangePasswordController" class="org.opens.tgol.controller.ForgottenOrChangePasswordController">
@@ -383,5 +347,7 @@
             </list>
         </property>
     </bean>
+    
+    <bean class="org.opens.tgol.form.parameterization.helper.ContractOptionFormFieldHelper" />
 
 </beans>

@@ -24,8 +24,10 @@ package org.opens.tgol.controller;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.log4j.Logger;
 import org.opens.tgol.command.CreateContractCommand;
 import org.opens.tgol.command.CreateUserCommand;
@@ -42,14 +44,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- *
+ * 
  * @author jkowalczyk
  */
 @Controller
-public class UserManagementController extends AbstractUserAndContractsController {
+public class UserManagementController extends
+        AbstractUserAndContractsController {
 
     public UserManagementController() {
         super();
@@ -59,27 +66,31 @@ public class UserManagementController extends AbstractUserAndContractsController
     @Override
     protected void initBinder(WebDataBinder binder) {
         super.initBinder(binder);
-        binder.registerCustomEditor(Collection.class, "userList", new CustomCollectionEditor(Collection.class) {
+        binder.registerCustomEditor(Collection.class, "userList",
+                new CustomCollectionEditor(Collection.class) {
 
-            @Override
-            protected Object convertElement(Object element) {
-                Long id = null;
+                    @Override
+                    protected Object convertElement(Object element) {
+                        Long id = null;
 
-                if (element instanceof String && !((String) element).equals("")) {
-                    //From the JSP 'element' will be a String
-                    try {
-                        id = Long.parseLong((String) element);
-                    } catch (NumberFormatException e) {
-                        Logger.getLogger(this.getClass()).warn("Element was " + ((String) element));
+                        if (element instanceof String
+                                && !((String) element).equals("")) {
+                            // From the JSP 'element' will be a String
+                            try {
+                                id = Long.parseLong((String) element);
+                            } catch (NumberFormatException e) {
+                                Logger.getLogger(this.getClass()).warn(
+                                        "Element was " + ((String) element));
+                            }
+                        } else if (element instanceof Long) {
+                            // From the database 'element' will be a Long
+                            id = (Long) element;
+                        }
+
+                        return id != null ? getUserDataService().read(id)
+                                : null;
                     }
-                } else if (element instanceof Long) {
-                    //From the database 'element' will be a Long
-                    id = (Long) element;
-                }
-
-                return id != null ? getUserDataService().read(id) : null;
-            }
-        });
+                });
     }
 
     /**
@@ -91,43 +102,68 @@ public class UserManagementController extends AbstractUserAndContractsController
      */
     @RequestMapping(value = TgolKeyStore.ADMIN_URL, method = RequestMethod.GET)
     @Secured(TgolKeyStore.ROLE_ADMIN_KEY)
-    public String displayAdminPage(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Model model) {
-        model.addAttribute(TgolKeyStore.USER_LIST_KEY, getUserDataService().findAll());
+    public String displayAdminPage(HttpServletRequest request,
+            HttpServletResponse response, Model model) {
+        model.addAttribute(TgolKeyStore.USER_LIST_KEY, getUserDataService()
+                .findAll());
+        // TODO Use the ACL-filtered searchAll instead of findAll?
+        model.addAttribute(TgolKeyStore.CONTRACT_LIST_KEY,
+                getContractDataService().findAll());
         // Due to different redirection that can lead to this page, we need
         // to test the different session attribute to display an appropriate
         // message and thus clean up the session with uneeded attributes
-        if (request.getSession().getAttribute(TgolKeyStore.DELETED_USER_NAME_KEY) != null) {
-            model.addAttribute(TgolKeyStore.DELETED_USER_NAME_KEY,
-                    request.getSession().getAttribute(TgolKeyStore.DELETED_USER_NAME_KEY));
-            request.getSession().removeAttribute(TgolKeyStore.DELETED_USER_NAME_KEY);
+        if (request.getSession().getAttribute(
+                TgolKeyStore.DELETED_USER_NAME_KEY) != null) {
+            model.addAttribute(
+                    TgolKeyStore.DELETED_USER_NAME_KEY,
+                    request.getSession().getAttribute(
+                            TgolKeyStore.DELETED_USER_NAME_KEY));
+            request.getSession().removeAttribute(
+                    TgolKeyStore.DELETED_USER_NAME_KEY);
         }
-        if (request.getSession().getAttribute(TgolKeyStore.DELETED_USER_AUDITS_KEY) != null) {
-            model.addAttribute(TgolKeyStore.DELETED_USER_AUDITS_KEY,
-                    request.getSession().getAttribute(TgolKeyStore.DELETED_USER_AUDITS_KEY));
-            request.getSession().removeAttribute(TgolKeyStore.DELETED_USER_AUDITS_KEY);
+        if (request.getSession().getAttribute(
+                TgolKeyStore.DELETED_USER_AUDITS_KEY) != null) {
+            model.addAttribute(
+                    TgolKeyStore.DELETED_USER_AUDITS_KEY,
+                    request.getSession().getAttribute(
+                            TgolKeyStore.DELETED_USER_AUDITS_KEY));
+            request.getSession().removeAttribute(
+                    TgolKeyStore.DELETED_USER_AUDITS_KEY);
         }
-        if (request.getSession().getAttribute(TgolKeyStore.UPDATED_USER_NAME_KEY) != null) {
-            model.addAttribute(TgolKeyStore.UPDATED_USER_NAME_KEY,
-                    request.getSession().getAttribute(TgolKeyStore.UPDATED_USER_NAME_KEY));
-            request.getSession().removeAttribute(TgolKeyStore.UPDATED_USER_NAME_KEY);
+        if (request.getSession().getAttribute(
+                TgolKeyStore.UPDATED_USER_NAME_KEY) != null) {
+            model.addAttribute(
+                    TgolKeyStore.UPDATED_USER_NAME_KEY,
+                    request.getSession().getAttribute(
+                            TgolKeyStore.UPDATED_USER_NAME_KEY));
+            request.getSession().removeAttribute(
+                    TgolKeyStore.UPDATED_USER_NAME_KEY);
         }
         if (request.getSession().getAttribute(TgolKeyStore.ADDED_USER_NAME_KEY) != null) {
-            model.addAttribute(TgolKeyStore.ADDED_USER_NAME_KEY,
-                    request.getSession().getAttribute(TgolKeyStore.ADDED_USER_NAME_KEY));
-            request.getSession().removeAttribute(TgolKeyStore.UPDATED_USER_NAME_KEY);
+            model.addAttribute(TgolKeyStore.ADDED_USER_NAME_KEY, request
+                    .getSession()
+                    .getAttribute(TgolKeyStore.ADDED_USER_NAME_KEY));
+            request.getSession().removeAttribute(
+                    TgolKeyStore.UPDATED_USER_NAME_KEY);
         }
-        if (request.getSession().getAttribute(TgolKeyStore.ADDED_CONTRACT_NAME_KEY) != null && 
-                request.getSession().getAttribute(TgolKeyStore.ADDED_CONTRACT_USERS_NAME_KEY) != null) {
-            model.addAttribute(TgolKeyStore.ADDED_CONTRACT_NAME_KEY,
-                    request.getSession().getAttribute(TgolKeyStore.ADDED_CONTRACT_NAME_KEY));
-            model.addAttribute(TgolKeyStore.ADDED_CONTRACT_USERS_NAME_KEY,
-                    request.getSession().getAttribute(TgolKeyStore.ADDED_CONTRACT_USERS_NAME_KEY));
-            request.getSession().removeAttribute(TgolKeyStore.ADDED_CONTRACT_USERS_NAME_KEY);
-            request.getSession().removeAttribute(TgolKeyStore.ADDED_CONTRACT_NAME_KEY);
+        if (request.getSession().getAttribute(
+                TgolKeyStore.ADDED_CONTRACT_NAME_KEY) != null
+                && request.getSession().getAttribute(
+                        TgolKeyStore.ADDED_CONTRACT_USERS_NAME_KEY) != null) {
+            model.addAttribute(
+                    TgolKeyStore.ADDED_CONTRACT_NAME_KEY,
+                    request.getSession().getAttribute(
+                            TgolKeyStore.ADDED_CONTRACT_NAME_KEY));
+            model.addAttribute(
+                    TgolKeyStore.ADDED_CONTRACT_USERS_NAME_KEY,
+                    request.getSession().getAttribute(
+                            TgolKeyStore.ADDED_CONTRACT_USERS_NAME_KEY));
+            request.getSession().removeAttribute(
+                    TgolKeyStore.ADDED_CONTRACT_USERS_NAME_KEY);
+            request.getSession().removeAttribute(
+                    TgolKeyStore.ADDED_CONTRACT_NAME_KEY);
         }
+        // TODO : add messages relatives to contracts management
         return TgolKeyStore.ADMIN_VIEW_NAME;
     }
 
@@ -142,8 +178,7 @@ public class UserManagementController extends AbstractUserAndContractsController
     @Secured(TgolKeyStore.ROLE_ADMIN_KEY)
     public String displayEditUserAdminPage(
             @RequestParam(TgolKeyStore.USER_ID_KEY) String userId,
-            HttpServletRequest request,
-            HttpServletResponse response,
+            HttpServletRequest request, HttpServletResponse response,
             Model model) {
         Long lUserId;
         try {
@@ -154,9 +189,7 @@ public class UserManagementController extends AbstractUserAndContractsController
         User userToModify = getUserDataService().read(lUserId);
         model.addAttribute(TgolKeyStore.USER_NAME_KEY, userToModify.getEmail1());
         request.getSession().setAttribute(TgolKeyStore.USER_ID_KEY, lUserId);
-        return prepateDataAndReturnCreateUserView(
-                model,
-                userToModify,
+        return prepateDataAndReturnCreateUserView(model, userToModify,
                 TgolKeyStore.EDIT_USER_VIEW_NAME);
     }
 
@@ -164,7 +197,7 @@ public class UserManagementController extends AbstractUserAndContractsController
      * This methods controls the validity of the form and launch an audit with
      * values populated by the user. In case of audit failure, an appropriate
      * message is displayed
-     *
+     * 
      * @param createUserCommand
      * @param result
      * @param model
@@ -175,13 +208,12 @@ public class UserManagementController extends AbstractUserAndContractsController
     @Secured(TgolKeyStore.ROLE_ADMIN_KEY)
     protected String submitEditUserForm(
             @ModelAttribute(TgolKeyStore.CREATE_USER_COMMAND_KEY) CreateUserCommand createUserCommand,
-            BindingResult result,
-            HttpServletRequest request,
-            Model model)
+            BindingResult result, HttpServletRequest request, Model model)
             throws Exception {
         Long userId;
         try {
-            userId = (Long) (request.getSession().getAttribute(TgolKeyStore.USER_ID_KEY));
+            userId = (Long) (request.getSession()
+                    .getAttribute(TgolKeyStore.USER_ID_KEY));
         } catch (NumberFormatException nfe) {
             throw new ForbiddenUserException();
         }
@@ -189,17 +221,10 @@ public class UserManagementController extends AbstractUserAndContractsController
         if (getCurrentUser().getId().equals(userId)) {
             updateAllData = false;
         }
-        return submitUpdateUserForm(
-                createUserCommand,
-                result,
-                request,
-                model,
+        return submitUpdateUserForm(createUserCommand, result, request, model,
                 getUserDataService().read(userId),
-                TgolKeyStore.ADMIN_VIEW_NAME,
-                TgolKeyStore.EDIT_USER_VIEW_NAME,
-                updateAllData,
-                true,
-                TgolKeyStore.UPDATED_USER_NAME_KEY);
+                TgolKeyStore.ADMIN_VIEW_NAME, TgolKeyStore.EDIT_USER_VIEW_NAME,
+                updateAllData, true, TgolKeyStore.UPDATED_USER_NAME_KEY);
     }
 
     /**
@@ -211,13 +236,9 @@ public class UserManagementController extends AbstractUserAndContractsController
      */
     @RequestMapping(value = TgolKeyStore.ADD_USER_URL, method = RequestMethod.GET)
     @Secured(TgolKeyStore.ROLE_ADMIN_KEY)
-    public String displayAddUserAdminPage(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Model model) {
-        return prepateDataAndReturnCreateUserView(
-                model,
-                null,
+    public String displayAddUserAdminPage(HttpServletRequest request,
+            HttpServletResponse response, Model model) {
+        return prepateDataAndReturnCreateUserView(model, null,
                 TgolKeyStore.ADD_USER_VIEW_NAME);
     }
 
@@ -225,7 +246,7 @@ public class UserManagementController extends AbstractUserAndContractsController
      * This methods controls the validity of the form and launch an audit with
      * values populated by the user. In case of audit failure, an appropriate
      * message is displayed
-     *
+     * 
      * @param createUserCommand
      * @param result
      * @param model
@@ -235,17 +256,10 @@ public class UserManagementController extends AbstractUserAndContractsController
     @RequestMapping(value = TgolKeyStore.ADD_USER_URL, method = RequestMethod.POST)
     protected String submitAddUserForm(
             @ModelAttribute(TgolKeyStore.CREATE_USER_COMMAND_KEY) CreateUserCommand createUserCommand,
-            BindingResult result,
-            Model model)
-            throws Exception {
-        return submitCreateUserForm(
-                createUserCommand,
-                result,
-                model,
-                TgolKeyStore.ADMIN_VIEW_NAME,
-                TgolKeyStore.ADD_USER_VIEW_NAME,
-                true,
-                TgolKeyStore.ADDED_USER_NAME_KEY);
+            BindingResult result, Model model) throws Exception {
+        return submitCreateUserForm(createUserCommand, result, model,
+                TgolKeyStore.ADMIN_VIEW_NAME, TgolKeyStore.ADD_USER_VIEW_NAME,
+                true, TgolKeyStore.ADDED_USER_NAME_KEY);
     }
 
     /**
@@ -259,8 +273,7 @@ public class UserManagementController extends AbstractUserAndContractsController
     @Secured(TgolKeyStore.ROLE_ADMIN_KEY)
     public String displayDeleteUserPage(
             @RequestParam(TgolKeyStore.USER_ID_KEY) String userId,
-            HttpServletRequest request,
-            HttpServletResponse response,
+            HttpServletRequest request, HttpServletResponse response,
             Model model) {
         Long lUserId;
         try {
@@ -269,11 +282,14 @@ public class UserManagementController extends AbstractUserAndContractsController
             throw new ForbiddenUserException();
         }
         User userToDelete = getUserDataService().read(lUserId);
-        if (userToDelete == null || getCurrentUser().getId().equals(userToDelete.getId())) {
+        if (userToDelete == null
+                || getCurrentUser().getId().equals(userToDelete.getId())) {
             return TgolKeyStore.ACCESS_DENIED_VIEW_NAME;
         }
-        model.addAttribute(TgolKeyStore.USER_NAME_TO_DELETE_KEY, userToDelete.getEmail1());
-        request.getSession().setAttribute(TgolKeyStore.USER_ID_TO_DELETE_KEY, userToDelete.getId());
+        model.addAttribute(TgolKeyStore.USER_NAME_TO_DELETE_KEY,
+                userToDelete.getEmail1());
+        request.getSession().setAttribute(TgolKeyStore.USER_ID_TO_DELETE_KEY,
+                userToDelete.getId());
         return TgolKeyStore.DELETE_USER_VIEW_NAME;
     }
 
@@ -286,11 +302,10 @@ public class UserManagementController extends AbstractUserAndContractsController
      */
     @RequestMapping(value = TgolKeyStore.DELETE_USER_URL, method = RequestMethod.POST)
     @Secured(TgolKeyStore.ROLE_ADMIN_KEY)
-    public String displayDeleteUserConfirmation(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Model model) {
-        Object userId = request.getSession().getAttribute(TgolKeyStore.USER_ID_TO_DELETE_KEY);
+    public String displayDeleteUserConfirmation(HttpServletRequest request,
+            HttpServletResponse response, Model model) {
+        Object userId = request.getSession().getAttribute(
+                TgolKeyStore.USER_ID_TO_DELETE_KEY);
         Long lUserId;
         if (userId instanceof Long) {
             lUserId = (Long) userId;
@@ -306,12 +321,15 @@ public class UserManagementController extends AbstractUserAndContractsController
         if (userToDelete == null || user.getId().equals(userToDelete.getId())) {
             return TgolKeyStore.ACCESS_DENIED_VIEW_NAME;
         }
-        for (Contract contract : userToDelete.getContractSet()) {
-            deleteAllAuditsFromContract(contract);
-        }
+        // Contracts are not deleted with user anymore.
+        // for (Contract contract : userToDelete.getContractSet()) {
+        // deleteAllAuditsFromContract(contract);
+        // }
         getUserDataService().delete(userToDelete.getId());
-        request.getSession().removeAttribute(TgolKeyStore.USER_ID_TO_DELETE_KEY);
-        request.getSession().setAttribute(TgolKeyStore.DELETED_USER_NAME_KEY, userToDelete.getEmail1());
+        request.getSession()
+                .removeAttribute(TgolKeyStore.USER_ID_TO_DELETE_KEY);
+        request.getSession().setAttribute(TgolKeyStore.DELETED_USER_NAME_KEY,
+                userToDelete.getEmail1());
         return TgolKeyStore.ADMIN_VIEW_REDIRECT_NAME;
     }
 
@@ -326,8 +344,7 @@ public class UserManagementController extends AbstractUserAndContractsController
     @Secured(TgolKeyStore.ROLE_ADMIN_KEY)
     public String displayDeleteUserAuditsPage(
             @RequestParam(TgolKeyStore.USER_ID_KEY) String userId,
-            HttpServletRequest request,
-            HttpServletResponse response,
+            HttpServletRequest request, HttpServletResponse response,
             Model model) {
         Long lUserId;
         try {
@@ -335,10 +352,12 @@ public class UserManagementController extends AbstractUserAndContractsController
         } catch (NumberFormatException nfe) {
             throw new ForbiddenUserException();
         }
-        
+
         User userToDelete = getUserDataService().read(lUserId);
-        model.addAttribute(TgolKeyStore.USER_NAME_TO_DELETE_KEY, userToDelete.getEmail1());
-        request.getSession().setAttribute(TgolKeyStore.USER_ID_TO_DELETE_KEY, userToDelete.getId());
+        model.addAttribute(TgolKeyStore.USER_NAME_TO_DELETE_KEY,
+                userToDelete.getEmail1());
+        request.getSession().setAttribute(TgolKeyStore.USER_ID_TO_DELETE_KEY,
+                userToDelete.getId());
         return TgolKeyStore.DELETE_AUDITS_VIEW_NAME;
     }
 
@@ -350,10 +369,10 @@ public class UserManagementController extends AbstractUserAndContractsController
     @RequestMapping(value = TgolKeyStore.DELETE_USER_AUDITS_URL, method = RequestMethod.POST)
     @Secured(TgolKeyStore.ROLE_ADMIN_KEY)
     public String displayDeleteUserAuditsConfirmationPage(
-            HttpServletRequest request,
-            HttpServletResponse response,
+            HttpServletRequest request, HttpServletResponse response,
             Model model) {
-        Object userId = request.getSession().getAttribute(TgolKeyStore.USER_ID_TO_DELETE_KEY);
+        Object userId = request.getSession().getAttribute(
+                TgolKeyStore.USER_ID_TO_DELETE_KEY);
         Long lUserId;
         if (userId instanceof Long) {
             lUserId = (Long) userId;
@@ -366,11 +385,14 @@ public class UserManagementController extends AbstractUserAndContractsController
         }
 
         User userToDelete = getUserDataService().read(lUserId);
-        for (Contract contract : userToDelete.getContractSet()) {
-            deleteAllAuditsFromContract(contract);
-        }
-        request.getSession().removeAttribute(TgolKeyStore.USER_ID_TO_DELETE_KEY);
-        request.getSession().setAttribute(TgolKeyStore.DELETED_USER_AUDITS_KEY, userToDelete.getEmail1());
+        // TODO rather delete audit/acts Contract by contract...
+        // for (Contract contract : userToDelete.getContractSet()) {
+        // deleteAllAuditsFromContract(contract);
+        // }
+        request.getSession()
+                .removeAttribute(TgolKeyStore.USER_ID_TO_DELETE_KEY);
+        request.getSession().setAttribute(TgolKeyStore.DELETED_USER_AUDITS_KEY,
+                userToDelete.getEmail1());
         return TgolKeyStore.ADMIN_VIEW_REDIRECT_NAME;
     }
 
@@ -383,16 +405,15 @@ public class UserManagementController extends AbstractUserAndContractsController
      */
     @RequestMapping(value = TgolKeyStore.ADD_CONTRACT_URL, method = RequestMethod.GET)
     @Secured(TgolKeyStore.ROLE_ADMIN_KEY)
-    public String displayAddContractAdminPage(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Model model) {
+    public String displayAddContractAdminPage(HttpServletRequest request,
+            HttpServletResponse response, Model model) {
 
         return prepateDataAndReturnCreateContractView(
                 model,
                 null,
                 null,
-                ContractOptionFormFieldHelper.getFreshContractOptionFormFieldMap(getContractOptionFormFieldBuilderMap()),
+                ContractOptionFormFieldHelper
+                        .getFreshContractOptionFormFieldMap(),
                 TgolKeyStore.ADD_CONTRACT_VIEW_NAME);
     }
 
@@ -407,43 +428,38 @@ public class UserManagementController extends AbstractUserAndContractsController
     @Secured(TgolKeyStore.ROLE_ADMIN_KEY)
     public String submitAddContractAdminPage(
             @ModelAttribute(TgolKeyStore.CREATE_CONTRACT_COMMAND_KEY) CreateContractCommand ccc,
-            BindingResult result,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Model model) {
+            BindingResult result, HttpServletRequest request,
+            HttpServletResponse response, Model model) {
 
-        Map<String, List<ContractOptionFormField>> optionFormFieldMap =
-                ContractOptionFormFieldHelper.getFreshContractOptionFormFieldMap(getContractOptionFormFieldBuilderMap());
+        Map<String, List<ContractOptionFormField>> optionFormFieldMap = ContractOptionFormFieldHelper
+                .getFreshContractOptionFormFieldMap();
 
-        getCreateContractFormValidator().setContractOptionFormFieldMap(optionFormFieldMap);
+        getCreateContractFormValidator().setContractOptionFormFieldMap(
+                optionFormFieldMap);
         // We check whether the form is valid
         getCreateContractFormValidator().validateMultipleUsers(ccc, result);
         if (result.hasErrors()) {
-            return displayFormWithErrors(
-                    model,
-                    ccc,
-                    null,
-                    null,
-                    optionFormFieldMap,
-                    TgolKeyStore.ADD_CONTRACT_VIEW_NAME);
+            return displayFormWithErrors(model, ccc, null, null,
+                    optionFormFieldMap, TgolKeyStore.ADD_CONTRACT_VIEW_NAME);
         }
-        Collection<User> userList = ccc.getUserList();
+//        Collection<User> userList = ccc.getUserList();
         StringBuilder strb = new StringBuilder();
-        for (User user : userList) {
-            if (user != null) {
-                Contract contract = getContractDataService().create();  
-                contract.setUser(user);
-                contract = CreateContractCommandFactory.getInstance().updateContractFromCommand(
-                                ccc, 
-                                contract);
-                getContractDataService().saveOrUpdate(contract);
-                strb.append(user.getEmail1());
-                strb.append(", ");
-            }
-        }
-        
-        request.getSession().setAttribute(TgolKeyStore.ADDED_CONTRACT_NAME_KEY,ccc.getLabel());
-        request.getSession().setAttribute(TgolKeyStore.ADDED_CONTRACT_USERS_NAME_KEY,strb.toString());
+//        for (User user : userList) {
+//            if (user != null) {
+//                Contract contract = getContractDataService().create();
+////                contract.setUser(user);
+//                contract = CreateContractCommandFactory.getInstance()
+//                        .updateContractFromCommand(ccc, contract);
+//                getContractDataService().saveOrUpdate(contract);
+//                strb.append(user.getEmail1());
+//                strb.append(", ");
+//            }
+//        }
+
+        request.getSession().setAttribute(TgolKeyStore.ADDED_CONTRACT_NAME_KEY,
+                ccc.getLabel());
+        request.getSession().setAttribute(
+                TgolKeyStore.ADDED_CONTRACT_USERS_NAME_KEY, strb.toString());
         return TgolKeyStore.ADMIN_VIEW_REDIRECT_NAME;
     }
 

@@ -24,17 +24,70 @@ package org.opens.tgol.form.parameterization.helper;
 import java.util.*;
 import org.opens.tgol.form.parameterization.ContractOptionFormField;
 import org.opens.tgol.form.parameterization.builder.ContractOptionFormFieldBuilder;
-import org.opens.tgol.form.parameterization.builder.ContractOptionFormFieldBuilderImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 /**
  * That class handles utility methods to deal with ContractOptionFormFields. 
  * 
  * @author jkowalczyk
  */
+@Component
 public final class ContractOptionFormFieldHelper {
 
-    private ContractOptionFormFieldHelper(){}
-    
+    @Autowired
+    private ContractOptionFormFieldHelper(
+            @Qualifier("nbMaxAuditsPerContractOptionBuilder") ContractOptionFormFieldBuilder nbMaxAuditsPerContractOptionBuilder,
+            @Qualifier("nbMaxActsToDisplayPerContractOptionBuilder") ContractOptionFormFieldBuilder nbMaxActsToDisplayPerContractOptionBuilder,
+            @Qualifier("depthOptionBuilder") ContractOptionFormFieldBuilder depthOptionBuilder,
+            @Qualifier("maxDurationOptionBuilder") ContractOptionFormFieldBuilder maxDurationOptionBuilder,
+            @Qualifier("maxDocumentsOptionBuilder") ContractOptionFormFieldBuilder maxDocumentsOptionBuilder,
+            @Qualifier("exclusionRegexpOptionBuilder") ContractOptionFormFieldBuilder exclusionRegexpOptionBuilder) {
+        ContractOptionFormFieldHelper._instance = this;
+        init(nbMaxAuditsPerContractOptionBuilder,
+                nbMaxActsToDisplayPerContractOptionBuilder,
+                depthOptionBuilder,
+                maxDurationOptionBuilder,
+                maxDocumentsOptionBuilder,
+                exclusionRegexpOptionBuilder);
+    }
+
+    private static final Map<String, List<ContractOptionFormFieldBuilder>> defaultOptionFormFieldBuilderMap = new HashMap<String, List<ContractOptionFormFieldBuilder>>();
+
+    private void init(
+            ContractOptionFormFieldBuilder nbMaxAuditsPerContractOptionBuilder,
+            ContractOptionFormFieldBuilder nbMaxActsToDisplayPerContractOptionBuilder,
+            ContractOptionFormFieldBuilder depthOptionBuilder,
+            ContractOptionFormFieldBuilder maxDurationOptionBuilder,
+            ContractOptionFormFieldBuilder maxDocumentsOptionBuilder,
+            ContractOptionFormFieldBuilder exclusionRegexpOptionBuilder) {
+        
+        List<ContractOptionFormFieldBuilder> generalOptions = new ArrayList<ContractOptionFormFieldBuilder>();
+        generalOptions.add(nbMaxAuditsPerContractOptionBuilder);
+        generalOptions.add(nbMaxActsToDisplayPerContractOptionBuilder);
+        defaultOptionFormFieldBuilderMap.put("general-options", generalOptions);
+        
+        List<ContractOptionFormFieldBuilder> crawlOptions = new ArrayList<ContractOptionFormFieldBuilder>();
+        crawlOptions.add(depthOptionBuilder);
+        crawlOptions.add(maxDurationOptionBuilder);
+        crawlOptions.add(maxDocumentsOptionBuilder);
+        crawlOptions.add(exclusionRegexpOptionBuilder);
+        defaultOptionFormFieldBuilderMap.put("crawl-options", crawlOptions);
+    }
+
+
+    private static ContractOptionFormFieldHelper _instance;
+
+    private static ContractOptionFormFieldHelper getInstance() {
+        return _instance;
+    }
+
+    public static Map<String, List<ContractOptionFormField>> getFreshContractOptionFormFieldMap() {
+        return getInstance().getFreshContractOptionFormFieldMap(
+                defaultOptionFormFieldBuilderMap);
+    }
+
     /**
      * Create a fresh map of contractOptionFormField from an contractOptionFormFieldBuilder
      * map
@@ -42,7 +95,7 @@ public final class ContractOptionFormFieldHelper {
      * @param contractOptionFormFieldBuilderMap
      * @return 
      */
-    public static Map<String, List<ContractOptionFormField>> getFreshContractOptionFormFieldMap (
+    private Map<String, List<ContractOptionFormField>> getFreshContractOptionFormFieldMap(
             Map<String, List<ContractOptionFormFieldBuilder>> contractOptionFormFieldBuilderMap) {
 
         // Copy the audit setup form field map from the builders
@@ -63,7 +116,7 @@ public final class ContractOptionFormFieldHelper {
      * @param auditSetUpFormFieldBuilderList
      * @return 
      */
-    public static List<ContractOptionFormField> getFreshContractOptionFormFieldList(
+    private List<ContractOptionFormField> getFreshContractOptionFormFieldList(
             List<ContractOptionFormFieldBuilder> contractOptionFormFieldBuilderList) {
         List<ContractOptionFormField> setUpFormFieldList = new LinkedList<ContractOptionFormField>();
         for (Iterator<ContractOptionFormFieldBuilder> it = contractOptionFormFieldBuilderList.iterator(); it.hasNext();) {
