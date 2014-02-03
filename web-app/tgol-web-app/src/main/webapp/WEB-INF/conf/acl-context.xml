@@ -34,6 +34,10 @@
   <constructor-arg ref="aclDataSource"/>
         <constructor-arg ref="lookupStrategy"/>
         <constructor-arg ref="aclCache"/>
+        <!--  Specific to MySQL, because "identity" procedure does not exist -->
+        <property name="classIdentityQuery" value="SELECT @@IDENTITY"/>
+        <property name="sidIdentityQuery" value="SELECT @@IDENTITY"/>
+        <!-- /end MySQL specific -->
  </bean>
   
  <!-- Declare a lookup strategy-->
