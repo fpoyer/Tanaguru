@@ -128,7 +128,6 @@ public class ForgottenOrChangePasswordController extends AbstractController {
             Model model) {
         model.addAttribute(TgolKeyStore.CHANGE_PASSWORD_FROM_ADMIN_KEY, false);
         secondaryLevelMenuDisplayer.setModifiableReferentialsForUserToModel(
-                        getCurrentUser(), 
                         model); 
         return displayChangePasswordView(id, token, model, request);
     }

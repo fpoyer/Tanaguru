@@ -107,7 +107,7 @@ public class LoginController extends AbstractUserAndContractsController{
 
         doGuestAutoLogin(request);
 
-        Collection<Contract> contractSet = getContractDataService().getAllContractsByUser(getCurrentUser());
+        Collection<Contract> contractSet = getContractDataService().searchAll();
         if (contractSet == null || contractSet.isEmpty()) {
             return TgolKeyStore.NO_DEMO_AVAILABLE_VIEW_NAME;
         }

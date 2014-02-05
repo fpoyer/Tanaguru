@@ -80,6 +80,9 @@ public class PageListController extends AuditDataHandlerController{
         } catch (Exception e) {
             throw new ForbiddenPageException(e);
         }
+        if (audit == null) {
+            throw new ForbiddenPageException();
+        }
 
         Act act = getActDataService().getActFromAudit(audit);
         if (isUserAllowedToDisplayResult(act)) {

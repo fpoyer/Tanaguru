@@ -114,7 +114,7 @@ public class AccountSettingsController extends AbstractUserAndContractsControlle
         if (this.forbiddenUserList.contains(user.getEmail1())) {
             throw new ForbiddenPageException();
         }
-        secondaryLevelMenuDisplayer.setModifiableReferentialsForUserToModel(user, model);
+        secondaryLevelMenuDisplayer.setModifiableReferentialsForUserToModel(model);
         return prepateDataAndReturnCreateUserView(
                 model,
                 user,
@@ -152,7 +152,7 @@ public class AccountSettingsController extends AbstractUserAndContractsControlle
                 TgolKeyStore.ACCOUNT_SETTINGS_VIEW_NAME);
         }
         
-        secondaryLevelMenuDisplayer.setModifiableReferentialsForUserToModel(user, model);
+        secondaryLevelMenuDisplayer.setModifiableReferentialsForUserToModel(model);
         
         return submitUpdateUserForm(
                 createUserCommand, 
@@ -250,7 +250,6 @@ public class AccountSettingsController extends AbstractUserAndContractsControlle
         model.addAttribute(TgolKeyStore.TEST_LIST_KEY, testList);
         
         secondaryLevelMenuDisplayer.setModifiableReferentialsForUserToModel(
-                        getCurrentUser(), 
                         model);
 
         return testList;

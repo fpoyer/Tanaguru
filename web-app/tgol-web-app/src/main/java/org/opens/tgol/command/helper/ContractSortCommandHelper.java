@@ -128,7 +128,7 @@ public final class ContractSortCommandHelper  {
         } else {
             exclusionSortOccurence = new ArrayList<String>();
         }
-        Collection<Contract> allAvailableContracts = contractDataService.findAll();
+        Collection<Contract> allAvailableContracts = contractDataService.searchAll();
         for (Contract contract : allAvailableContracts) {
             if (isContractLabelIncluded(inclusionSortOccurence, contract.getLabel()) &&
                     !isContractLabelExcluded(exclusionSortOccurence, contract.getLabel())) {

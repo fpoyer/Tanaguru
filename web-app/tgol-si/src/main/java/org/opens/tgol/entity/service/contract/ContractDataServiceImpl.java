@@ -27,7 +27,7 @@ import org.opens.tanaguru.sdk.entity.service.AbstractGenericDataService;
 import org.opens.tgol.entity.contract.Contract;
 import org.opens.tgol.entity.dao.contract.ContractDAO;
 import org.opens.tgol.entity.option.OptionElement;
-import org.opens.tgol.entity.user.User;
+import org.springframework.security.access.prepost.PostFilter;
 
 /**
  *
@@ -38,12 +38,7 @@ public class ContractDataServiceImpl extends AbstractGenericDataService<Contract
 
     private static final String URL_OPTION_NAME = "DOMAIN";
     
-    @Override
-    public Collection<Contract> getAllContractsByUser(User user) {
-        return ((ContractDAO) entityDao).findAllContractsByUser(user);
-    }
-
-    @Override 
+   @Override 
     public String getUrlFromContractOption(Contract contract) {
         for (OptionElement optionElement : ((ContractDAO) entityDao).read(contract.getId()).getOptionElementSet()) {
             if (StringUtils.equals(URL_OPTION_NAME, optionElement.getOption().getCode())) {
@@ -51,6 +46,17 @@ public class ContractDataServiceImpl extends AbstractGenericDataService<Contract
             }
         }
         return "";
+    }
+   
+   @PostFilter("hasPermission(filterObject, 'read')")
+   @Override
+    public Collection<Contract> searchAll() {
+       return findAll();
+   }
+   
+    @Override
+    public Collection<Contract> findAll() {
+        return entityDao.findAll();
     }
 
 }

@@ -220,7 +220,7 @@ public class CreateContractFormValidator implements Validator {
      * @return
      */
     private boolean checkUsers(CreateContractCommand createContractCommand, Errors errors) {
-        Collection<User> userList = createContractCommand.getUserList();
+        Collection<User> userList = createContractCommand.getReaders();
         if (userList == null || userList.isEmpty()) {
             return false;
         }
@@ -228,9 +228,10 @@ public class CreateContractFormValidator implements Validator {
         for (User user : userList) {
             if (user != null) {
                 hasAtLeastOneRealUser = true;
+                break;
             }
         }
-        return hasAtLeastOneRealUser;
+        return hasAtLeastOneRealUser && createContractCommand.getOwner() != null;
     }
 
 }

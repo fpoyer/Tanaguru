@@ -129,7 +129,8 @@ public class CreateContractCommandFactory  implements Serializable {
      * @return 
      */
     public CreateContractCommand getNewCreateContractCommand() {
-        CreateContractCommand createContractCommand = getCreateContractCommand();
+       //CreateContractCommand createContractCommand = getCreateContractCommand();
+        CreateContractCommand createContractCommand = new CreateContractCommand();
         Calendar cal = Calendar.getInstance();
         createContractCommand.setBeginDate(cal.getTime());
         cal.add(Calendar.YEAR,1);

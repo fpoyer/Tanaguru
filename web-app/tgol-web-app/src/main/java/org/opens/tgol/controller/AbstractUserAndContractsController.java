@@ -73,16 +73,6 @@ public class AbstractUserAndContractsController extends AbstractController{
         this.displayOptionFieldsBuilderList = formFieldBuilderList;
     }
     
-    private Map<String, List<ContractOptionFormFieldBuilder>> contractOptionFormFieldBuilderMap;
-    public Map<String, List<ContractOptionFormFieldBuilder>> getContractOptionFormFieldBuilderMap() {
-        return contractOptionFormFieldBuilderMap;
-    }
-
-    public final void setContractOptionFormFieldBuilderMap(
-            final Map<String, List<ContractOptionFormFieldBuilder>> formFieldBuilderMap) {
-        this.contractOptionFormFieldBuilderMap = formFieldBuilderMap;
-    }
-    
     @InitBinder
     protected void initBinder(WebDataBinder binder) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -111,6 +101,7 @@ public class AbstractUserAndContractsController extends AbstractController{
         this.createUserFormValidator = createUserFormValidator;
     }
     
+    @Autowired
     private CreateContractFormValidator createContractFormValidator;
     public CreateContractFormValidator getCreateContractFormValidator() {
         return createContractFormValidator;

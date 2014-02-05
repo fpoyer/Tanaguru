@@ -49,7 +49,7 @@ public class UserDAOImpl extends AbstractJPADAO<User, Long> implements UserDAO {
         }
         Query query = entityManager.createQuery("SELECT u FROM "
                 + getEntityClass().getName() + " u"
-                + " left join fetch u.contractSet c"
+//                + " left join fetch u.contractSet c"
                 + " WHERE u.id = :id");
         query.setParameter("id", key);
         try {
@@ -63,7 +63,7 @@ public class UserDAOImpl extends AbstractJPADAO<User, Long> implements UserDAO {
     public User findUserFromEmail(String email) {
         Query query = entityManager.createQuery("SELECT u FROM "
                 + getEntityClass().getName() + " u"
-                + " left join fetch u.contractSet c"
+//                + " left join fetch u.contractSet c"
 //                + " left join fetch c.actSet a"
                 + " WHERE u.email = :email");
         query.setParameter("email", email);
@@ -78,7 +78,7 @@ public class UserDAOImpl extends AbstractJPADAO<User, Long> implements UserDAO {
     public User findUserFromName(String name) {
         Query query = entityManager.createQuery("SELECT u FROM "
                 + getEntityClass().getName() + " u"
-                + " left join fetch u.contractSet c"
+                //+ " left join fetch u.contractSet c"
                 + " WHERE u.name = :name");
         query.setParameter("name", name);
         try {

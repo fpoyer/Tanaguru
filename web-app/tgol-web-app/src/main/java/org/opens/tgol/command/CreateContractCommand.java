@@ -34,16 +34,25 @@ import org.opens.tgol.entity.user.User;
 public class CreateContractCommand  implements Serializable {
 
     /**
-     * the label of the contract
+     * list of users with READ right on the contract
      */
-    private Collection<User> userList;
-    public Collection<User> getUserList() {
-        return userList;
+    private Collection<User> readers;
+    public Collection<User> getReaders() {
+        return readers;
     }
 
-    public void setUserList(Collection<User> userList) {
-        this.userList = userList;
+    public void setReaders(Collection<User> readers) {
+        this.readers = readers;
     }
+    
+    private User owner;
+    public User getOwner() {
+        return owner;
+    }
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+    
     
     /**
      * the label of the contract
