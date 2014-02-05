@@ -65,20 +65,6 @@ public interface GenericDAO<E extends Entity, K extends Serializable> {
     Collection<E> findAll();
 
     /**
-    *
-    * @return the index list found
-    */
-   Collection<K> findAllIndexes();
-    
-    /**
-     * @param indexes
-     *            a list of index of entities to return
-     * @return the collection of entities corresponding to the list of index
-     *         given
-     */
-    Collection<E> findByIndexes(Collection<K> indexes);
-
-    /**
      *
      * @param key
      *            the key of the entity to read

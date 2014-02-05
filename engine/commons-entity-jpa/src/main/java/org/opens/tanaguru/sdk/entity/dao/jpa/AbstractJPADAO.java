@@ -24,7 +24,6 @@ package org.opens.tanaguru.sdk.entity.dao.jpa;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -107,31 +106,6 @@ public abstract class AbstractJPADAO<E extends Entity, K extends Serializable>
         return query.getResultList();
     }
     
-    @SuppressWarnings("unchecked")
-    @Override
-    public Collection<K> findAllIndexes() {
-        Query query = entityManager.createQuery("SELECT o.id FROM "
-                + getEntityClassName() + " o");
-        return query.getResultList();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Collection<E> findByIndexes(Collection<K> indexes) {
-        StringBuilder queryBuilder = new StringBuilder("SELECT o FROM ")
-                .append(getEntityClassName()).append(" o WHERE o.id IN (");
-        Iterator<K> it = indexes.iterator();
-        while (it.hasNext()) {
-            K index = it.next();
-            queryBuilder.append(index.toString());
-            if (it.hasNext()) {
-                queryBuilder.append(',');
-            }
-        }
-        queryBuilder.append(")");
-        Query query = entityManager.createQuery(queryBuilder.toString());
-        return query.getResultList();
-    }
     protected abstract Class<? extends E> getEntityClass();
 
     @Override

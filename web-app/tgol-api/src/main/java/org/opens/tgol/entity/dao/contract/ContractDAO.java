@@ -21,12 +21,8 @@
  */
 package org.opens.tgol.entity.dao.contract;
 
-import java.util.Collection;
-
 import org.opens.tanaguru.sdk.entity.dao.GenericDAO;
 import org.opens.tgol.entity.contract.Contract;
-import org.opens.tgol.entity.user.User;
-import org.springframework.security.access.prepost.PostFilter;
 
 /**
  *
@@ -34,22 +30,4 @@ import org.springframework.security.access.prepost.PostFilter;
  */
 public interface ContractDAO extends GenericDAO<Contract, Long> {
 
-    /**
-     *
-     * @param user
-     * @return
-     *      the collection of contracts for a given user
-     */
-    Collection<Contract> findAllContractsByUser(User user);
-    
-    /**
-     * Filtering returned indexes by current user read rights (read from ACLs).
-     */
-    @PostFilter("hasPermission(filterObject, 'org.opens.tgol.entity.contract.ContractImpl', 'read')")
-    @Override
-    Collection<Long> findAllIndexes();
-
-    @Override
-    Collection<Contract> findByIndexes(Collection<Long> indexes);
-    
 }

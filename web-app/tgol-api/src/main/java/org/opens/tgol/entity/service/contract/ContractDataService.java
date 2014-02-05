@@ -33,14 +33,6 @@ import org.opens.tgol.entity.user.User;
 public interface ContractDataService extends GenericDataService<Contract, Long> {
 
     /**
-     *
-     * @param user
-     * @return
-     *      the collection of contracts for a given user
-     */
-    Collection<Contract> getAllContractsByUser(User user);
-    
-    /**
      * The Url associated with the contract is an option. We need to iterate 
      * through the options of the contract to retrieve the one that handles 
      * the Url. If this option is missing, an empty String is returned.
@@ -49,5 +41,7 @@ public interface ContractDataService extends GenericDataService<Contract, Long> 
      * @return 
      */
     String getUrlFromContractOption(Contract contract);
+    
+    Collection<Contract> searchAll();
 
 }

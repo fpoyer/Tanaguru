@@ -23,7 +23,6 @@ package org.opens.tanaguru.sdk.entity.service;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 
 import org.opens.tanaguru.sdk.entity.Entity;
 import org.opens.tanaguru.sdk.entity.dao.GenericDAO;
@@ -86,18 +85,7 @@ public abstract class AbstractGenericDataService<E extends Entity, K extends Ser
 
     @Override
     public Collection<E> findAll() {
-        // Roughly equivalent to :
-        // return entityDao.findAll();
-        // But result may be filtered by current User/Principal rights using
-        // ACLs (ex: for Contracts, see
-        // org.opens.tgol.entity.dao.contract.ContractDAO)
-
-        Collection<K> allAccessibleContractsIndex = entityDao.findAllIndexes();
-        if (allAccessibleContractsIndex == null
-                || allAccessibleContractsIndex.isEmpty()) {
-            return Collections.emptySet();
-        }
-        return entityDao.findByIndexes(allAccessibleContractsIndex);
+        return entityDao.findAll();
     }
 
     /**
