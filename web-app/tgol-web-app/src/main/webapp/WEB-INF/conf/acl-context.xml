@@ -38,6 +38,11 @@
         <property name="classIdentityQuery" value="SELECT @@IDENTITY"/>
         <property name="sidIdentityQuery" value="SELECT @@IDENTITY"/>
         <!-- /end MySQL specific -->
+	<!-- Specific to PostGreSQL, because default values are for HSQLDB -->
+	<!-- <property name="classIdentityQuery" value="select currval(pg_get_serial_sequence('acl_class', 'id'))"/> -->
+	<!-- <property name="sidIdentityQuery" value="select currval(pg_get_serial_sequence('acl_sid', 'id'))"/> -->
+	<!-- /end PostGreSQL specific -->
+        
  </bean>
   
  <!-- Declare a lookup strategy-->
@@ -52,7 +57,7 @@
         <bean id="aclDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
        destroy-method="close"
           p:driverClass="${jdbc.driverClassName}"
-          p:jdbcUrl="jdbc:mysql://localhost:3306/acl"
+          p:jdbcUrl="${jdbc.url}"
           p:user="${jdbc.username}"
           p:password="${jdbc.password}"
           p:idleConnectionTestPeriod="60"
