@@ -153,7 +153,7 @@ public class HomeControllerTest extends TestCase {
         mockContractDataService = createMock(ContractDataService.class);
         Collection<Contract> contractSet = new HashSet<Contract>();
         contractSet.add(mockContract);
-        expect(mockContractDataService.findAll()).andReturn(contractSet).once();
+        expect(mockContractDataService.searchAll()).andReturn(contractSet).once();
         expect(mockContractDataService.getUrlFromContractOption(mockContract)).andReturn("").once();
         expect(mockContractDataService.read(Long.valueOf("1"))).andReturn(mockContract).once();
         
