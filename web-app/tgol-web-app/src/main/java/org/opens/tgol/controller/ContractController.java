@@ -28,6 +28,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.opens.tgol.entity.contract.Contract;
+import org.opens.tgol.entity.contract.ContractImpl;
 import org.opens.tgol.entity.functionality.Functionality;
 import org.opens.tgol.exception.ForbiddenPageException;
 import org.opens.tgol.exception.ForbiddenUserException;
@@ -110,7 +111,7 @@ public class ContractController extends AbstractController {
     private boolean currentUserCanRead(Long contractId) {
         List<Permission> permissions = new ArrayList<Permission>(1);
         permissions.add(BasePermission.READ);
-        return isHoldingPermissions(getCurrentSid(), permissions, new ObjectIdentityImpl(Contract.class, contractId));
+        return isHoldingPermissions(getCurrentSid(), permissions, new ObjectIdentityImpl(ContractImpl.class, contractId));
     }
 
     /**
