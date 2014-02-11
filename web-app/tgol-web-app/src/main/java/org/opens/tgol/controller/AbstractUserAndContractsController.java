@@ -38,7 +38,6 @@ import org.opens.tgol.entity.service.contract.ActDataService;
 import org.opens.tgol.entity.user.User;
 import org.opens.tgol.form.builder.FormFieldBuilder;
 import org.opens.tgol.form.parameterization.ContractOptionFormField;
-import org.opens.tgol.form.parameterization.builder.ContractOptionFormFieldBuilder;
 import org.opens.tgol.util.TgolKeyStore;
 import org.opens.tgol.util.webapp.ExposablePropertyPlaceholderConfigurer;
 import org.opens.tgol.validator.CreateContractFormValidator;
@@ -390,8 +389,7 @@ public class AbstractUserAndContractsController extends AbstractController{
             Long userId,
             Map<String, List<ContractOptionFormField>> optionFormFieldMap, 
             String errorViewName) {
-        model.addAttribute(TgolKeyStore.CREATE_CONTRACT_COMMAND_KEY,
-                CreateContractCommandFactory.getInstance().getInitialisedCreateContractCommand(createContractCommand));
+        model.addAttribute(TgolKeyStore.CREATE_CONTRACT_COMMAND_KEY, createContractCommand);
         model.addAttribute(TgolKeyStore.USER_NAME_KEY,userName);
         model.addAttribute(TgolKeyStore.USER_ID_KEY,userId);
         model.addAttribute(TgolKeyStore.OPTIONS_MAP_KEY, optionFormFieldMap);

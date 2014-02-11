@@ -23,7 +23,9 @@ package org.opens.tgol.command.factory;
 
 import java.io.Serializable;
 import java.util.*;
+
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.opens.tgol.command.CreateContractCommand;
 import org.opens.tgol.entity.contract.Contract;
 import org.opens.tgol.entity.functionality.Functionality;
@@ -41,7 +43,8 @@ import org.opens.tgol.entity.service.referential.ReferentialDataService;
  */
 public class CreateContractCommandFactory  implements Serializable {
 
-    private static final String DOMAIN_OPTION_CODE = "DOMAIN";
+    private static final long serialVersionUID = -7369205970056064644L;
+	private static final String DOMAIN_OPTION_CODE = "DOMAIN";
     private static CreateContractCommandFactory createContractCommandFactory;
     
     private Collection<Referential> referentialList;
@@ -111,19 +114,7 @@ public class CreateContractCommandFactory  implements Serializable {
 
         return createContractCommand;
     }
-    
-    /**
-     * 
-     * @param createContractCommand
-     * @return 
-     */
-    public CreateContractCommand getInitialisedCreateContractCommand(
-            CreateContractCommand createContractCommand) {
-        addFunctionalityToExistingCommand(createContractCommand);
-        addReferentialToExistingCommand(createContractCommand);
-        return createContractCommand;
-    }
-    
+
     /**
      * 
      * @return 
@@ -138,63 +129,21 @@ public class CreateContractCommandFactory  implements Serializable {
         return createContractCommand;
     }
     
-    /**
-     * 
-     * @return 
-     */
-    private CreateContractCommand getCreateContractCommand() {
-        CreateContractCommand createContractCommand = new CreateContractCommand();
-
-        addNewFunctionalityToCommand(createContractCommand);
-        addNewReferentialToCommand(createContractCommand);
-        addNewOptionsToCommand(createContractCommand);
-
-        return createContractCommand;
-    }
 
     /**
      * 
      */
     private void addFunctionalityToCommand(CreateContractCommand ccc, Contract contract) {
-        Map<String,Boolean> functMap = new LinkedHashMap<String,Boolean>();
+        List<String> functList = new ArrayList<String>();
         
         for (Functionality funct : this.functionalityList){
             if (contract.getFunctionalitySet().contains(funct)) {
-                functMap.put(funct.getCode(),Boolean.TRUE);
+                functList.add(funct.getCode());
             } else {
-                functMap.put(funct.getCode(),Boolean.FALSE);
+                functList.add(funct.getCode());
             }
         }
-        ccc.setFunctionalityMap(functMap);
-    }
-    
-    /**
-     * 
-     */
-    private void addFunctionalityToExistingCommand(CreateContractCommand ccc) {
-        Map<String,Boolean> functMap = new LinkedHashMap<String,Boolean>();
-        
-        for (Map.Entry<String,Boolean> entry : ccc.getFunctionalityMap().entrySet()){
-            if (entry.getValue() == null) {
-                functMap.put(entry.getKey(),Boolean.FALSE);
-            } else {
-                functMap.put(entry.getKey(),Boolean.TRUE);
-            }
-        }
-        ccc.setFunctionalityMap(functMap);
-    }
-    
-    /**
-     * 
-     * @param ccc 
-     */
-    private void addNewFunctionalityToCommand(CreateContractCommand ccc) {
-        Map<String,Boolean> functMap = new LinkedHashMap<String,Boolean>();
-        
-        for (Functionality funct : this.functionalityList){
-            functMap.put(funct.getCode(),Boolean.FALSE);
-        }
-        ccc.setFunctionalityMap(functMap);
+        ccc.setEnabledFunctionalities(functList);
     }
     
     /**
@@ -203,49 +152,20 @@ public class CreateContractCommandFactory  implements Serializable {
      * @param contract 
      */
     private void addReferentialToCommand(CreateContractCommand ccc, Contract contract) {
-        Map<String,Boolean> refMap = new LinkedHashMap<String,Boolean>();
+        Set<String> refMap = new HashSet<String>();
         
         for (Referential ref : referentialList){
             if (contract.getReferentialSet().contains(ref)) {
-                refMap.put(ref.getCode(),Boolean.TRUE);
+                refMap.add(ref.getCode());
             } else {
-                refMap.put(ref.getCode(),Boolean.FALSE);
+                refMap.add(ref.getCode());
             }
         }
-        ccc.setReferentialMap(refMap);
+        ccc.setEnabledReferentials(refMap);
     }
     
-    /**
-     * 
-     * @param ccc
-     * @param contract 
-     */
-    private void addReferentialToExistingCommand(CreateContractCommand ccc) {
-        Map<String,Boolean> refMap = new LinkedHashMap<String,Boolean>();
-        
-        for (Map.Entry<String,Boolean> entry : ccc.getReferentialMap().entrySet()){
-            if (entry.getValue() == null) {
-                refMap.put(entry.getKey(),Boolean.FALSE);
-            } else {
-                refMap.put(entry.getKey(),Boolean.TRUE);
-            }
-        }
-        ccc.setReferentialMap(refMap);
-    }
-    
-    /**
-     * 
-     * @param ccc 
-     */
-    private void addNewReferentialToCommand(CreateContractCommand ccc) {
-        Map<String,Boolean> refMap = new LinkedHashMap<String,Boolean>();
-        
-        for (Referential ref : referentialList){
-            refMap.put(ref.getCode(),Boolean.FALSE);
-        }
-        ccc.setReferentialMap(refMap);
-    }
-    
+
+
     /**
      * 
      * @param ccc
@@ -273,21 +193,6 @@ public class CreateContractCommandFactory  implements Serializable {
                 ccc.setContractUrl(optionElement.getValue());
             }
         }
-    }
-    
-    /**
-     * 
-     * @param ccc
-     * @param contract 
-     */
-    private void addNewOptionsToCommand(CreateContractCommand ccc) {
-        Map<String,String> optionMap = new LinkedHashMap<String,String>();
-        for (Option option : optionList) {
-            if (!option.getCode().equals(DOMAIN_OPTION_CODE)) {
-                optionMap.put(option.getCode(),"");
-            }
-        }
-        ccc.setOptionMap(optionMap);
     }
 
     /**
@@ -321,17 +226,19 @@ public class CreateContractCommandFactory  implements Serializable {
         Set<Functionality> functSet = new HashSet<Functionality>();
         Set<Referential> refSet = new HashSet<Referential>();
         Set<OptionElement> optionElementSet = new HashSet<OptionElement>();
-        
-        for (Map.Entry<String,Boolean> entry : ccc.getFunctionalityMap().entrySet()) {
-            if (entry.getValue() != null && entry.getValue()) {
-                functSet.add(getFunctionalityFromCode(entry.getKey()));
+        Logger.getLogger(this.getClass()).error("Functionnalities in command: " + ccc.getEnabledFunctionalities());
+        for (String functionalityCode : ccc.getEnabledFunctionalities()) {
+            if (functionalityCode != null) {
+                functSet.add(getFunctionalityFromCode(functionalityCode));
             }
         }
-        for (Map.Entry<String,Boolean> entry : ccc.getReferentialMap().entrySet()) {
-            if (entry.getValue() != null && entry.getValue()) {
-                refSet.add(getReferentialFromCode(entry.getKey()));
+        Logger.getLogger(this.getClass()).error("Referentials in command: " + ccc.getEnabledReferentials());
+        for (String referentialCode : ccc.getEnabledReferentials()) {
+            if (referentialCode != null ) {
+                refSet.add(getReferentialFromCode(referentialCode));
             }
         }
+        Logger.getLogger(this.getClass()).error("Options in command: " + ccc.getOptionMap());
         for (Map.Entry<String,String> entry : ccc.getOptionMap().entrySet()) {
             if (!StringUtils.isEmpty(entry.getValue())) {
                 optionElementSet.add(getOptionElementFromOptionAndValue(entry.getKey(), entry.getValue()));

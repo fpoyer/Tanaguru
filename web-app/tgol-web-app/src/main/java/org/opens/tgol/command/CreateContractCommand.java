@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
+
 import org.opens.tgol.entity.user.User;
 
 /**
@@ -34,6 +35,10 @@ import org.opens.tgol.entity.user.User;
 public class CreateContractCommand  implements Serializable {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 2254560967777593584L;
+	/**
      * list of users with READ right on the contract
      */
     private Collection<User> readers;
@@ -102,22 +107,22 @@ public class CreateContractCommand  implements Serializable {
         this.endDate = endDate;
     }
     
-    private Map<String,Boolean> referentialMap;
-    public Map<String,Boolean> getReferentialMap() {
-        return referentialMap;
+    private Collection<String> enabledReferentials;
+    public Collection<String> getEnabledReferentials() {
+        return enabledReferentials;
     }
 
-    public void setReferentialMap(Map<String,Boolean> referentialMap) {
-        this.referentialMap = referentialMap;
+    public void setEnabledReferentials(Collection<String> referentialMap) {
+        this.enabledReferentials = referentialMap;
     }
     
-    private Map<String,Boolean> functionalityMap;
-    public Map<String,Boolean> getFunctionalityMap() {
-        return functionalityMap;
+    private Collection<String> enabledFunctionalities;
+    public Collection<String> getEnabledFunctionalities() {
+        return enabledFunctionalities;
     }
 
-    public void setFunctionalityMap(Map<String,Boolean> functionalityMap) {
-        this.functionalityMap = functionalityMap;
+    public void setEnabledFunctionalities(Collection<String> functionalityMap) {
+        this.enabledFunctionalities = functionalityMap;
     }
     
     private Map<String,String> optionMap;

@@ -1,14 +1,12 @@
 package org.opens.tgol.controller;
 
 import java.beans.PropertyEditorSupport;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.log4j.Logger;
 import org.opens.tgol.command.CreateContractCommand;
 import org.opens.tgol.command.factory.CreateContractCommandFactory;
@@ -59,26 +57,27 @@ public class AddController extends AbstractUserAndContractsController {
     @Autowired
     private FunctionalityDataService functionalityDataService;
 
-    @ModelAttribute("functionalityMap")
-    public Map<String, Boolean> getFunctionalityList() {
-        Map<String, Boolean> functMap = new LinkedHashMap<String, Boolean>();
-        for (Functionality funct : functionalityDataService.findAll()) {
-            functMap.put(funct.getCode(), Boolean.FALSE);
+    @ModelAttribute("allFunctionalities")
+    public Collection<String> getFunctionalityList() {
+        Collection<Functionality> allFunctionalities = functionalityDataService.findAll();
+        List<String> allFunctionalitiesCodes = new ArrayList<String>(allFunctionalities.size());
+		for (Functionality funct : allFunctionalities) {
+            allFunctionalitiesCodes.add(funct.getCode());
         }
-        return functMap;
+        return allFunctionalitiesCodes;
     }
 
     @Autowired
     private ReferentialDataService referentialDataService;
 
-    @ModelAttribute("referentialMap")
-    public Map<String, Boolean> getReferentialList() {
-        Map<String, Boolean> refMap = new LinkedHashMap<String, Boolean>();
-
-        for (Referential ref : referentialDataService.findAll()) {
-            refMap.put(ref.getCode(), Boolean.FALSE);
+    @ModelAttribute("allReferentials")
+    public Collection<String> getReferentialList() {
+        Collection<Referential> allReferentials = referentialDataService.findAll();
+        List<String> allReferentialCodes = new ArrayList<String>(allReferentials.size());
+		for (Referential ref : allReferentials) {
+            allReferentialCodes.add(ref.getCode());
         }
-        return refMap;
+        return allReferentialCodes;
     }
 
     @InitBinder
@@ -158,12 +157,9 @@ public class AddController extends AbstractUserAndContractsController {
                 .validate(createContractCommand, result);
 
         // If the form has some errors, we display it again with errors' details
-        if (result.hasErrors()) {
-            model.addAttribute(
-                    TgolKeyStore.CREATE_CONTRACT_COMMAND_KEY,
-                    CreateContractCommandFactory.getInstance()
-                            .getInitialisedCreateContractCommand(
-                                    createContractCommand));
+		if (result.hasErrors()) {
+			model.addAttribute(TgolKeyStore.CREATE_CONTRACT_COMMAND_KEY,
+					createContractCommand);
 
             return "add-contract-acl";
         }

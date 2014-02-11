@@ -105,11 +105,8 @@ public class EditController extends AbstractUserAndContractsController {
                 .validate(createContractCommand, result);
         // If the form has some errors, we display it again with errors' details
         if (result.hasErrors()) {
-            model.addAttribute(
-                    TgolKeyStore.CREATE_CONTRACT_COMMAND_KEY,
-                    CreateContractCommandFactory.getInstance()
-                            .getInitialisedCreateContractCommand(
-                                    createContractCommand));
+			model.addAttribute(TgolKeyStore.CREATE_CONTRACT_COMMAND_KEY,
+					createContractCommand);
             model.addAttribute(TgolKeyStore.OPTIONS_MAP_KEY, optionFormFieldMap);
             model.addAttribute(TgolKeyStore.USER_LIST_KEY, getUserDataService()
                     .findAll());

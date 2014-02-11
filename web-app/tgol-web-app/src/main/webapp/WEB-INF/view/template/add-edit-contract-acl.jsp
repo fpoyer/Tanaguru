@@ -106,13 +106,11 @@
                             <fieldset>
                                 <legend><fmt:message key="edit-contract.referentials"/></legend>
                                 <div class="clearfix edit-contract-checkbox-block">
-                                <c:forEach items="${referentialMap}" var="ref" varStatus="pRefInput">
+                                <c:forEach items="${allReferentials}" var="ref" varStatus="pRefInput">
                                     <span class="edit-contract-ref">
-                                    <c:set var="refKey">${ref.key}</c:set>
-                                    <c:set var="refValue">${ref.value}</c:set>
-                                    <label id="${refKey}" for="referentialMap${refKey}1" class="edit-contract-label"><fmt:message key="edit-contract.${refKey}"/></label>
-                                    <form:checkbox path="referentialMap[${refKey}]" cssErrorClass="error" value="${refValue}" />
-                                    <form:errors path="referentialMap[${refKey}]" cssClass="alert-message error" />
+                                    <label id="${ref}" for="enableReferentials" class="edit-contract-label"><fmt:message key="edit-contract.${ref}"/></label>
+                                    <form:checkbox path="enabledReferentials" cssErrorClass="error" value="${ref}"/>
+                                    <form:errors path="enabledReferentials" cssClass="alert-message error" />
                                     </span>
                                 </c:forEach>
                                 </div>
@@ -120,13 +118,11 @@
                             <fieldset>
                                 <legend><fmt:message key="edit-contract.functionalities"/></legend>
                                 <div class="clearfix edit-contract-checkbox-block">
-                                <c:forEach items="${functionalityMap}" var="funct" varStatus="pFunctInput">
+                                <c:forEach items="${allFunctionalities}" var="funct" varStatus="pFunctInput">
                                     <span class="edit-contract-funct">
-                                        <c:set var="functKey">${funct.key}</c:set>
-                                        <c:set var="functValue">${funct.value}</c:set>
-                                        <label id="${functKey}" for="functionalityMap${functKey}1" class="edit-contract-label"><fmt:message key="edit-contract.${functKey}"/></label>
-                                        <form:checkbox path="functionalityMap[${functKey}]" cssErrorClass="error"  value="${functValue}"/>
-                                        <form:errors path="functionalityMap[${functKey}]" cssClass="alert-message error" />
+                                        <label id="${funct}" for="enabledFunctionalities" class="edit-contract-label"><fmt:message key="edit-contract.${funct}"/></label>
+                                        <form:checkbox path="enabledFunctionalities" cssErrorClass="error"  value="${funct}"/>
+                                        <form:errors path="enabledFunctionalities" cssClass="alert-message error" />
                                     </span>
                                 </c:forEach>
                                 </div>
