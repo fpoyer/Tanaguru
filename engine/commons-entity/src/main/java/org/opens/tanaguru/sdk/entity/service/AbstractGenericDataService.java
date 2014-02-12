@@ -23,7 +23,6 @@ package org.opens.tanaguru.sdk.entity.service;
 
 import java.io.Serializable;
 import java.util.Collection;
-
 import org.opens.tanaguru.sdk.entity.Entity;
 import org.opens.tanaguru.sdk.entity.dao.GenericDAO;
 import org.opens.tanaguru.sdk.entity.factory.GenericFactory;
